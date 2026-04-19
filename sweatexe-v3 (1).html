@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWEAT.EXE — AI Fitness OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+:root{--lime:#C8FF00;--pink:#FF2D78;--dark:#0A0A0A;--card:#111111;--muted:#1E1E1E;--border:#2A2A2A;--text:#F5F5F5;--gray:#888;--lgray:#555;--blue:#4A9EFF}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--text);font-family:'Syne',sans-serif;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;opacity:.4}
+
+/* SCREENS */
+.screen{display:none}.screen.active{display:block}
+#app-screen{display:none}#app-screen.active{display:flex}
+
+/* NAV */
+.l-nav{display:flex;justify-content:space-between;align-items:center;padding:18px 40px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,10,10,.95);backdrop-filter:blur(14px);z-index:200}
+.l-logo{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:2px;color:var(--lime);cursor:pointer}
+.l-logo span{color:var(--pink)}
+.l-nav-links{display:flex;gap:28px;list-style:none;font-size:.82rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.l-nav-links a{color:var(--gray);text-decoration:none;transition:color .2s}.l-nav-links a:hover{color:var(--lime)}
+.l-nav-right{display:flex;gap:10px;align-items:center}
+.btn-ng{background:transparent;color:var(--text);border:1px solid var(--border);padding:9px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-ng:hover{border-color:var(--lime);color:var(--lime)}
+.btn-nl{background:var(--lime);color:var(--dark);border:none;padding:10px 22px;font-family:'Syne',sans-serif;font-weight:800;font-size:.82rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-nl:hover{transform:translateY(-2px);box-shadow:0 4px 18px rgba(200,255,0,.4)}
+
+/* HERO */
+.hero{min-height:90vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:80px 40px;gap:60px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-80px;top:50%;transform:translateY(-50%);width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(200,255,0,.07) 0%,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.3);padding:5px 13px;font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--lime);margin-bottom:22px;width:fit-content}
+.bdot{width:6px;height:6px;background:var(--lime);border-radius:50%;animation:bp 1.5s ease-in-out infinite}
+@keyframes bp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.8rem,8vw,8rem);line-height:.95;letter-spacing:2px;margin-bottom:22px}
+.hero h1 .acc{color:var(--lime)}.hero h1 .pk{color:var(--pink)}
+.hero-sub{font-size:1rem;color:var(--gray);max-width:440px;line-height:1.65;margin-bottom:36px}
+.hero-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.hv-card{background:var(--card);border:1px solid var(--border);padding:20px;position:relative;overflow:hidden;margin-bottom:14px}
+.hv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--lime),transparent)}
+.hv-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.hv-avi{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--lime),var(--pink));display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--dark);flex-shrink:0}
+.hv-name{font-size:.9rem;font-weight:800}.hv-sub{font-size:.7rem;color:var(--gray);font-family:'Space Mono',monospace}
+.hv-pro{margin-left:auto;background:rgba(200,255,0,.1);border:1px solid var(--lime);color:var(--lime);padding:3px 9px;font-size:.62rem;font-family:'Space Mono',monospace}
+.hv-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.hv-m{background:var(--muted);padding:9px;text-align:center}
+.hv-mv{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--lime);line-height:1}
+.hv-mk{font-size:.58rem;color:var(--gray);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.hv-wo{display:flex;align-items:center;gap:12px}
+.hv-wi{width:38px;height:38px;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.hv-wt{flex:1}.hv-wt h4{font-size:.86rem;font-weight:800}.hv-wt p{font-size:.7rem;color:var(--gray);font-family:'Space Mono',monospace;margin-top:1px}
+.hv-badge{background:var(--pink);color:#fff;padding:2px 9px;font-size:.6rem;font-family:'Space Mono',monospace}
+
+/* STATS STRIP */
+.stats-strip{display:flex;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.stat-item{flex:1;padding:28px 40px;border-right:1px solid var(--border)}.stat-item:last-child{border-right:none}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:3rem;color:var(--lime);line-height:1}
+.stat-lbl{font-size:.75rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-top:3px}
+
+/* SECTIONS */
+.l-section{padding:90px 40px}
+.sec-tag{font-size:.7rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:13px}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4rem,5vw,5rem);line-height:1;letter-spacing:1px;margin-bottom:14px}
+.sec-sub{color:var(--gray);font-size:.95rem;max-width:500px;line-height:1.65;margin-bottom:52px}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+.feat-card{background:var(--card);padding:36px 28px;transition:background .2s;position:relative;overflow:hidden}
+.feat-card::after{content:'';position:absolute;bottom:0;left:0;height:2px;width:0;background:var(--lime);transition:width .3s}
+.feat-card:hover{background:#161616}.feat-card:hover::after{width:100%}
+.feat-icon{font-size:2rem;margin-bottom:16px;display:block}
+.feat-card h3{font-size:1.05rem;font-weight:800;margin-bottom:7px}
+.feat-card p{font-size:.82rem;color:var(--gray);line-height:1.65}
+.how-section{background:#0d0d0d;padding:90px 40px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;margin-top:52px}
+.step{padding-top:18px;border-top:2px solid var(--border)}.step.lit{border-color:var(--lime)}.step.lit .snum{color:var(--lime)}
+.snum{font-family:'Bebas Neue',sans-serif;font-size:3.6rem;color:var(--border);line-height:1;margin-bottom:12px}
+.step h4{font-size:.92rem;font-weight:800;margin-bottom:5px}.step p{font-size:.8rem;color:var(--gray);line-height:1.6}
+
+/* PRICING */
+.pricing-section{padding:90px 40px;text-align:center}
+.pricing-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:20px;max-width:820px;margin:52px auto 0}
+.pricing-card{background:var(--card);border:1px solid var(--border);padding:40px 36px;position:relative;overflow:hidden;transition:transform .2s;text-align:left}
+.pricing-card:hover{transform:translateY(-3px)}
+.pricing-card.featured{border-color:var(--lime);background:#0f130a}
+.pricing-card.featured::before{content:'MOST POPULAR ⚡';position:absolute;top:16px;right:16px;background:var(--lime);color:var(--dark);font-size:.6rem;font-weight:800;letter-spacing:2px;padding:3px 9px;font-family:'Space Mono',monospace}
+.plan-name{font-size:.72rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gray);font-family:'Space Mono',monospace;margin-bottom:12px}
+.plan-price{font-family:'Bebas Neue',sans-serif;font-size:4.8rem;line-height:1;color:var(--text)}
+.plan-price sup{font-size:1.5rem;vertical-align:super;line-height:0}
+.plan-price sub{font-size:1rem;color:var(--gray);font-family:'Syne',sans-serif;font-weight:400}
+.featured .plan-price{color:var(--lime)}
+.plan-tag{font-size:.82rem;color:var(--gray);margin-bottom:26px;padding-bottom:26px;border-bottom:1px solid var(--border)}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:32px}
+.plan-features li{font-size:.83rem;display:flex;align-items:center;gap:8px}
+.plan-features li::before{content:'✓';color:var(--lime);font-weight:800;font-family:'Space Mono',monospace}
+.plan-features li.off{color:var(--lgray)}.plan-features li.off::before{content:'—';color:var(--border)}
+.btn-plan{width:100%;padding:14px;font-family:'Syne',sans-serif;font-weight:800;font-size:.86rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;border:none}
+.btn-plan-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-plan-ghost:hover{border-color:var(--lime);color:var(--lime)}
+.btn-plan-lime{background:var(--lime);color:var(--dark);position:relative;overflow:hidden}
+.btn-plan-lime::before{content:'';position:absolute;inset:0;background:var(--pink);transform:translateX(-100%);transition:transform .3s}
+.btn-plan-lime:hover::before{transform:translateX(0)}.btn-plan-lime span{position:relative;z-index:1}
+.testi-section{background:#0d0d0d;padding:90px 40px}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px}
+.testi-card{background:var(--card);border:1px solid var(--border);padding:28px}
+.testi-q{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;color:var(--lime);line-height:1;margin-bottom:12px}
+.testi-text{font-size:.86rem;line-height:1.7;margin-bottom:20px}
+.testi-author{display:flex;align-items:center;gap:10px}
+.testi-avi{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;color:var(--dark);flex-shrink:0}
+.testi-name{font-size:.83rem;font-weight:800}.testi-handle{font-size:.68rem;color:var(--gray);font-family:'Space Mono',monospace}
+.cta-section{padding:110px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(200,255,0,.05) 0%,transparent 70%);pointer-events:none}
+.cta-fine{font-size:.7rem;color:var(--lgray);margin-top:14px;font-family:'Space Mono',monospace}
+.l-footer{border-top:1px solid var(--border);padding:32px 40px;display:flex;justify-content:space-between;align-items:center}
+.l-footer-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--lime)}
+.l-footer-logo span{color:var(--pink)}
+.l-footer-links{display:flex;gap:22px;list-style:none}
+.l-footer-links a{font-size:.7rem;color:var(--gray);text-decoration:none;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;transition:color .2s}
+.l-footer-links a:hover{color:var(--lime)}
+.l-footer-copy{font-size:.68rem;color:var(--lgray);font-family:'Space Mono',monospace}
+
+/* SHARED BTNS */
+.btn-primary{background:var(--lime);color:var(--dark);border:none;padding:14px 32px;font-family:'Syne',sans-serif;font-weight:800;font-size:.92rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.btn-primary::before{content:'';position:absolute;inset:0;background:var(--pink);transform:translateX(-100%);transition:transform .3s}
+.btn-primary:hover::before{transform:translateX(0)}.btn-primary span{position:relative;z-index:1}
+.btn-ghost-l{background:transparent;color:var(--text);border:1px solid var(--border);padding:14px 32px;font-family:'Syne',sans-serif;font-weight:700;font-size:.92rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-ghost-l:hover{border-color:var(--lime);color:var(--lime)}
+
+/* AUTH OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.overlay.open{display:flex}
+.o-box{background:var(--card);border:1px solid var(--border);width:420px;max-width:94vw;position:relative;overflow:hidden;animation:aIn .3s ease}
+@keyframes aIn{from{transform:translateY(22px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.o-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--lime),var(--pink))}
+.o-header{padding:24px 26px 18px;border-bottom:1px solid var(--border)}
+.o-logo{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:2px;color:var(--lime)}
+.o-logo span{color:var(--pink)}.o-tagline{font-size:.75rem;color:var(--gray);margin-top:2px;font-family:'Space Mono',monospace}
+.auth-tabs{display:flex;border-bottom:1px solid var(--border)}
+.auth-tab{flex:1;padding:12px;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:1px;text-transform:uppercase;background:transparent;border:none;color:var(--gray);cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;margin-bottom:-1px}
+.auth-tab.active{color:var(--lime);border-bottom-color:var(--lime)}
+.o-body{padding:20px 26px 26px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;margin-bottom:5px;font-size:.66rem;font-family:'Space Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--gray)}
+.form-input,.form-select{width:100%;background:var(--muted);border:1px solid var(--border);color:var(--text);padding:10px 13px;font-family:'Syne',sans-serif;font-size:.86rem;outline:none;transition:border-color .2s;appearance:none}
+.form-input:focus,.form-select:focus{border-color:var(--lime)}
+.form-input::placeholder{color:var(--lgray)}
+.form-select option{background:var(--card)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.btn-auth{width:100%;padding:12px;background:var(--lime);color:var(--dark);border:none;font-family:'Syne',sans-serif;font-weight:800;font-size:.88rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:5px}
+.btn-auth:hover{background:#b8ef00}
+.o-err{color:var(--pink);font-family:'Space Mono',monospace;font-size:.71rem;margin-bottom:9px;display:none}
+.o-hint{text-align:center;margin-top:10px;font-size:.68rem;color:var(--lgray);font-family:'Space Mono',monospace}
+.o-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--gray);font-size:1.3rem;cursor:pointer;transition:color .2s}.o-close:hover{color:var(--pink)}
+
+/* STRIPE PAYMENT MODAL */
+.pay-box{background:var(--card);border:1px solid var(--lime);max-width:500px;width:94vw;position:relative;overflow:hidden;animation:aIn .3s ease}
+.pay-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--lime),var(--pink))}
+.pay-header{padding:26px 26px 20px;border-bottom:1px solid var(--border)}
+.pay-header h2{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:1px}
+.pay-header p{font-size:.8rem;color:var(--gray);margin-top:3px}
+.pay-body{padding:22px 26px 26px}
+.pay-summary{background:var(--muted);padding:13px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.pay-summary span:first-child{font-size:.75rem;font-family:'Space Mono',monospace;color:var(--gray)}
+.pay-summary span:last-child{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--lime)}
+
+/* Stripe Element */
+.stripe-tabs{display:flex;gap:10px;margin-bottom:18px}
+.pay-tab{flex:1;padding:10px;background:var(--muted);border:1px solid var(--border);color:var(--gray);font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.pay-tab.active{border-color:var(--lime);color:var(--lime);background:rgba(200,255,0,.06)}
+.stripe-mount{background:var(--muted);border:1px solid var(--border);padding:12px;margin-bottom:14px;min-height:44px}
+.paypal-btn-wrap{margin-bottom:14px}
+.pay-divider{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.pay-divider::before,.pay-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.pay-divider span{font-size:.68rem;color:var(--lgray);font-family:'Space Mono',monospace}
+.btn-pay-main{width:100%;padding:14px;background:var(--lime);color:var(--dark);border:none;font-family:'Syne',sans-serif;font-weight:800;font-size:.92rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.btn-pay-main::before{content:'';position:absolute;inset:0;background:var(--pink);transform:translateX(-100%);transition:transform .3s}
+.btn-pay-main:hover::before{transform:translateX(0)}.btn-pay-main .bt{position:relative;z-index:1}
+.btn-pay-main:disabled{opacity:.5;cursor:not-allowed}
+.secure-note{text-align:center;margin-top:10px;font-size:.68rem;color:var(--gray);font-family:'Space Mono',monospace}
+.stripe-logo{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;font-size:.66rem;color:var(--lgray);font-family:'Space Mono',monospace}
+.pay-err{color:var(--pink);font-family:'Space Mono',monospace;font-size:.72rem;margin-top:8px;display:none}
+
+/* API KEY SETUP */
+.api-setup-box{background:var(--card);border:1px solid var(--blue);max-width:480px;width:94vw;position:relative;overflow:hidden;animation:aIn .3s ease}
+.api-setup-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--lime))}
+.api-note{background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.25);border-left:3px solid var(--blue);padding:11px 14px;font-size:.78rem;color:rgba(74,158,255,.9);font-family:'Space Mono',monospace;line-height:1.6;margin-bottom:16px}
+.btn-blue{background:var(--blue);color:var(--dark);border:none;padding:12px 24px;font-family:'Syne',sans-serif;font-weight:800;font-size:.86rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-blue:hover{background:#3a8ef0}
+.btn-blue-full{width:100%}
+
+/* APP LAYOUT */
+#app-screen{min-height:100vh;flex-direction:row}
+.sidebar{width:230px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .3s}
+.sidebar.ready{transform:translateX(0)}
+.sb-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;color:var(--lime);cursor:pointer}
+.sb-logo span{color:var(--pink)}
+.sb-user{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.sb-avi{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--lime),var(--pink));display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:var(--dark);flex-shrink:0}
+.sb-uname{font-size:.83rem;font-weight:700}.sb-plan{font-size:.6rem;font-family:'Space Mono',monospace;color:var(--lime);letter-spacing:1px;text-transform:uppercase}
+.sb-section{padding:13px 11px 5px}
+.sb-lbl{font-size:.56rem;font-family:'Space Mono',monospace;color:var(--lgray);letter-spacing:2px;text-transform:uppercase;padding:0 7px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 11px;font-size:.8rem;font-weight:700;color:var(--gray);cursor:pointer;transition:all .15s;margin-bottom:2px;border:1px solid transparent;border-radius:2px}
+.nav-item:hover{background:var(--muted);color:var(--text)}
+.nav-item.active{background:rgba(200,255,0,.08);color:var(--lime);border-color:rgba(200,255,0,.2)}
+.nav-item .ni{font-size:.9rem;width:18px;text-align:center}
+.sb-footer{margin-top:auto;padding:13px;border-top:1px solid var(--border);font-size:.65rem;color:var(--lgray);font-family:'Space Mono',monospace;text-align:center;line-height:1.5}
+.api-key-indicator{display:flex;align-items:center;gap:6px;padding:8px 11px;margin-top:4px;cursor:pointer;transition:all .15s;border-radius:2px;border:1px solid transparent}
+.api-key-indicator:hover{border-color:var(--border);background:var(--muted)}
+.api-status-dot{width:6px;height:6px;border-radius:50%;background:var(--lgray);flex-shrink:0}
+.api-status-dot.active{background:var(--lime);box-shadow:0 0 6px var(--lime);animation:bp 2s infinite}
+.api-key-text{font-size:.68rem;font-family:'Space Mono',monospace;color:var(--gray)}
+.app-main{margin-left:230px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{padding:15px 28px;border-bottom:1px solid var(--border);background:rgba(10,10,10,.92);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:2px}
+.topbar-right{display:flex;align-items:center;gap:9px}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 7px var(--lime);animation:bp 2s infinite}
+.ai-txt{font-size:.68rem;font-family:'Space Mono',monospace;color:var(--gray)}
+.app-content{padding:26px 28px;flex:1}
+
+/* APP COMPONENTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:13px}
+.a-card{background:var(--card);border:1px solid var(--border);position:relative;overflow:hidden}
+.a-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--lime),transparent)}
+.a-card-hd{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.a-card-title{font-family:'Bebas Neue',sans-serif;font-size:.96rem;letter-spacing:1px}
+.a-card-bd{padding:18px 20px}
+.stat-card{background:var(--card);border:1px solid var(--border);padding:16px;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--lime),transparent)}
+.sv{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;line-height:1;color:var(--lime)}
+.sk{font-size:.6rem;font-family:'Space Mono',monospace;color:var(--gray);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.ss{font-size:.7rem;color:var(--lgray);margin-top:2px}
+.app-btn{padding:10px 20px;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;transition:all .2s}
+.app-btn-lime{background:var(--lime);color:var(--dark)}.app-btn-lime:hover{background:#b8ef00;box-shadow:0 3px 12px rgba(200,255,0,.3)}
+.app-btn-pink{background:var(--pink);color:#fff}.app-btn-pink:hover{background:#d91e64}
+.app-btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}.app-btn-ghost:hover{border-color:var(--lime);color:var(--lime)}
+.app-btn:disabled{opacity:.5;cursor:not-allowed}.app-btn-full{width:100%}
+.ai-block{background:var(--muted);border:1px solid var(--border);border-left:3px solid var(--lime);padding:16px;font-size:.83rem;line-height:1.75;color:var(--text);white-space:pre-wrap;font-family:'Syne',sans-serif;max-height:440px;overflow-y:auto}
+.ai-block::-webkit-scrollbar{width:3px}.ai-block::-webkit-scrollbar-thumb{background:var(--lime)}
+.loader{display:flex;align-items:center;gap:6px;color:var(--lime);font-family:'Space Mono',monospace;font-size:.75rem}
+.ldots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--lime);animation:ld 1.2s ease infinite;margin:0 1px}
+.ldots span:nth-child(2){animation-delay:.2s}.ldots span:nth-child(3){animation-delay:.4s}
+@keyframes ld{0%,80%,100%{transform:scale(.4);opacity:.3}40%{transform:scale(1);opacity:1}}
+.bar-track{height:5px;background:var(--muted);border-radius:100px;overflow:hidden;margin-top:4px}
+.bar-fill{height:100%;border-radius:100px;transition:width 1s ease}
+.data-tbl{width:100%;border-collapse:collapse}
+.data-tbl th{padding:8px 11px;text-align:left;font-size:.6rem;font-family:'Space Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--gray);border-bottom:1px solid var(--border)}
+.data-tbl td{padding:10px 11px;font-size:.8rem;border-bottom:1px solid rgba(42,42,42,.5)}
+.data-tbl tr:hover td{background:rgba(200,255,0,.02)}
+.sec-head{margin-bottom:20px}
+.sec-eyebrow{font-size:.6rem;font-family:'Space Mono',monospace;color:var(--lime);letter-spacing:3px;text-transform:uppercase;margin-bottom:4px}
+.sec-h2{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:1px}
+.tag-lime{background:rgba(200,255,0,.1);color:var(--lime);border:1px solid rgba(200,255,0,.3);display:inline-flex;align-items:center;padding:2px 8px;font-size:.6rem;font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.tag-pink{background:rgba(255,45,120,.1);color:var(--pink);border:1px solid rgba(255,45,120,.3);display:inline-flex;align-items:center;padding:2px 8px;font-size:.6rem;font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.tag-gray{background:var(--muted);color:var(--gray);border:1px solid var(--border);display:inline-flex;align-items:center;padding:2px 8px;font-size:.6rem;font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.tag-blue{background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.3);display:inline-flex;align-items:center;padding:2px 8px;font-size:.6rem;font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.warn-bar{background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.3);border-left:3px solid var(--pink);padding:10px 13px;font-size:.78rem;color:var(--pink);font-family:'Space Mono',monospace;margin-bottom:16px}
+.log-item{padding:11px 0;border-bottom:1px solid var(--border);display:flex;gap:11px;align-items:flex-start}
+.log-item:last-child{border-bottom:none}
+.log-icon{width:32px;height:32px;background:rgba(200,255,0,.08);border:1px solid rgba(200,255,0,.2);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.log-title{font-size:.84rem;font-weight:700}.log-meta{font-size:.68rem;color:var(--gray);font-family:'Space Mono',monospace;margin-top:1px}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.mt16{margin-top:16px}.mt20{margin-top:20px}.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}
+.flex{display:flex}.gap10{gap:10px}.iac{align-items:center}.jbet{justify-content:space-between}.f1{flex:1}
+.tl{color:var(--lime)}.tp{color:var(--pink)}.tg{color:var(--gray)}.tb{color:var(--blue)}
+.tsm{font-size:.82rem}.txs{font-size:.68rem;font-family:'Space Mono',monospace}
+.fmono{font-family:'Space Mono',monospace}.fbebas{font-family:'Bebas Neue',sans-serif;letter-spacing:1px}.fw8{font-weight:800}
+
+/* AI COACH CHAT */
+.coach-layout{display:grid;grid-template-columns:300px 1fr;gap:16px;height:calc(100vh - 180px);min-height:500px}
+.coach-sidebar{display:flex;flex-direction:column;gap:14px}
+.chat-window{background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.chat-window::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--pink),var(--lime))}
+.chat-hd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.chat-hd-avi{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--lime));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.chat-hd-name{font-size:.9rem;font-weight:800}
+.chat-hd-status{font-size:.66rem;color:var(--lime);font-family:'Space Mono',monospace;margin-top:1px}
+.chat-messages{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.chat-messages::-webkit-scrollbar{width:3px}.chat-messages::-webkit-scrollbar-thumb{background:var(--border)}
+.msg{display:flex;gap:9px;max-width:88%}
+.msg.user,.msg-user{flex-direction:row-reverse;align-self:flex-end}
+.msg.coach,.msg-coach{align-self:flex-start}
+.msg-avi{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800}
+.msg-avi.coach{background:linear-gradient(135deg,var(--pink),var(--lime));color:var(--dark)}
+.msg-avi.user-avi-c{background:linear-gradient(135deg,var(--lime),var(--pink));color:var(--dark)}
+.msg-bubble{padding:11px 14px;font-size:.83rem;line-height:1.65;white-space:pre-wrap}
+.msg.coach .msg-bubble{background:var(--muted);border:1px solid var(--border);border-radius:0 10px 10px 10px;color:var(--text)}
+.msg.user .msg-bubble{background:rgba(200,255,0,.12);border:1px solid rgba(200,255,0,.25);border-radius:10px 0 10px 10px;color:var(--text)}
+.msg-time{font-size:.6rem;color:var(--lgray);font-family:'Space Mono',monospace;margin-top:4px;text-align:right}
+.typing-indicator{display:none;align-items:center;gap:9px;padding:0 18px 10px}
+.typing-indicator.show{display:flex}
+.chat-input-area{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end}
+.chat-input{flex:1;background:var(--muted);border:1px solid var(--border);color:var(--text);padding:10px 14px;font-family:'Syne',sans-serif;font-size:.84rem;outline:none;resize:none;min-height:40px;max-height:120px;transition:border-color .2s;line-height:1.5}
+.chat-input:focus{border-color:var(--lime)}
+.chat-input::placeholder{color:var(--lgray)}
+.btn-send{background:var(--lime);color:var(--dark);border:none;padding:10px 16px;font-family:'Syne',sans-serif;font-weight:800;font-size:.8rem;cursor:pointer;transition:all .2s;white-space:nowrap;align-self:flex-end}
+.btn-send:hover{background:#b8ef00}.btn-send:disabled{opacity:.5;cursor:not-allowed}
+.quick-prompts{display:flex;flex-direction:column;gap:7px}
+.qp-btn{background:var(--muted);border:1px solid var(--border);color:var(--gray);padding:9px 12px;font-size:.76rem;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;transition:all .15s;text-align:left;line-height:1.4}
+.qp-btn:hover{border-color:var(--lime);color:var(--lime);background:rgba(200,255,0,.05)}
+.coach-topic-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;font-size:.6rem;font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase;border-radius:100px;background:rgba(255,45,120,.1);color:var(--pink);border:1px solid rgba(255,45,120,.25);margin-bottom:6px}
+
+/* TOAST */
+#toast{display:none;position:fixed;bottom:20px;right:20px;background:var(--card);border:1px solid var(--lime);border-left:3px solid var(--lime);padding:12px 16px;z-index:9000;font-size:.78rem;font-family:'Space Mono',monospace;color:var(--lime);animation:tst .3s ease}
+@keyframes tst{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
+
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease}
+.reveal.in{opacity:1;transform:none}
+
+@media(max-width:960px){
+  .hero{grid-template-columns:1fr;padding:50px 22px;min-height:auto}
+  .hero-visual{display:none}.l-nav-links{display:none}.l-nav{padding:14px 20px}
+  .stats-strip{flex-wrap:wrap}
+  .stat-item{flex:1 1 50%;border-right:none;border-bottom:1px solid var(--border)}
+  .l-section,.how-section,.testi-section,.cta-section,.pricing-section{padding:60px 20px}
+  .features-grid,.testi-grid,.steps{grid-template-columns:1fr}
+  .pricing-grid{grid-template-columns:1fr;max-width:380px}
+  .l-footer{flex-direction:column;gap:14px;padding:22px;text-align:center}
+  .sidebar{transform:translateX(-100%)}.sidebar.mob-open{transform:translateX(0)}
+  .app-main{margin-left:0}
+  .grid-2,.grid-3,.grid-4,.coach-layout{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .coach-layout{height:auto}
+}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:var(--border)}
+</style>
+</head>
+<body>
+
+<!-- ═══ LANDING ═══ -->
+<div id="landing-screen" class="screen active">
+  <nav class="l-nav">
+    <div class="l-logo" onclick="window.scrollTo(0,0)">SWEAT<span>.EXE</span></div>
+    <ul class="l-nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#testi">Reviews</a></li>
+    </ul>
+    <div class="l-nav-right">
+      <button class="btn-ng" onclick="openAuth('login')">Log In</button>
+      <button class="btn-nl" onclick="openPayModal('pro')">Start $5/mo →</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <div class="hero-badge"><div class="bdot"></div>AI-Powered · Gen Z Approved</div>
+      <h1>TRAIN<br><span class="acc">SMARTER</span><br>LOOK <span class="pk">BETTER</span></h1>
+      <p class="hero-sub">Your personal AI fitness OS. Custom workouts, meal plans, live coaching, and real results — for less than one coffee a week.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="openPayModal('pro')"><span>Start for $5/mo →</span></button>
+        <button class="btn-ghost-l" onclick="openAuth('signup')">Try Free</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hv-card">
+        <div class="hv-row"><div class="hv-avi">ZK</div><div><div class="hv-name">Zara K.</div><div class="hv-sub">@fitcheck2k25 · Week 8</div></div><div class="hv-pro">PRO</div></div>
+        <div class="hv-metrics"><div class="hv-m"><div class="hv-mv">24.1</div><div class="hv-mk">BMI</div></div><div class="hv-m"><div class="hv-mv">2140</div><div class="hv-mk">TDEE</div></div><div class="hv-m"><div class="hv-mv">-8lb</div><div class="hv-mk">Lost</div></div></div>
+      </div>
+      <div class="hv-card"><div class="hv-wo"><div class="hv-wi">🔥</div><div class="hv-wt"><h4>Today: Upper Body HIIT</h4><p>45 min · 6 exercises · Intermediate</p></div><div class="hv-badge">Day 3</div></div></div>
+      <div class="hv-card"><div class="hv-wo"><div class="hv-wi">🥗</div><div class="hv-wt"><h4>Meal Plan Ready</h4><p>2,140 cal · 165g protein · No gluten</p></div><div class="hv-badge">Today</div></div></div>
+    </div>
+  </section>
+
+  <div class="stats-strip">
+    <div class="stat-item"><div class="stat-num">50K+</div><div class="stat-lbl">Active Users</div></div>
+    <div class="stat-item"><div class="stat-num">4.9★</div><div class="stat-lbl">App Rating</div></div>
+    <div class="stat-item"><div class="stat-num">$5</div><div class="stat-lbl">Per Month</div></div>
+    <div class="stat-item"><div class="stat-num">94%</div><div class="stat-lbl">Hit Their Goal</div></div>
+  </div>
+
+  <section class="l-section" id="features">
+    <div class="sec-tag">// What you get</div>
+    <h2 class="sec-title">IT'S GIVING<br>RESULTS ✦</h2>
+    <p class="sec-sub">Everything you need to glow up, powered by AI that actually knows your body.</p>
+    <div class="features-grid">
+      <div class="feat-card reveal"><span class="feat-icon">🧠</span><h3>AI Body Profiler</h3><p>BMI, TDEE, macro split — calculated instantly from your stats with AI-powered health analysis.</p></div>
+      <div class="feat-card reveal"><span class="feat-icon">💪</span><h3>Custom Workout Plans</h3><p>7-day schedules tailored to your age, goal, and equipment — gym, dumbbells, or bodyweight.</p></div>
+      <div class="feat-card reveal"><span class="feat-icon">🥗</span><h3>Smart Meal Plans</h3><p>Breakfast to dinner built around your macros, dietary restrictions, and foods you actually enjoy.</p></div>
+      <div class="feat-card reveal"><span class="feat-icon">🤖</span><h3>Live AI Coach Chat</h3><p>Chat with your personal AI coach 24/7. Ask anything — form, nutrition, motivation, recovery.</p></div>
+      <div class="feat-card reveal"><span class="feat-icon">📊</span><h3>Progress Tracking</h3><p>Log workouts and weight, visualize your chart, get AI insights on your trends every week.</p></div>
+      <div class="feat-card reveal"><span class="feat-icon">⚡</span><h3>Weekly AI Adjustments</h3><p>Your plan evolves as you improve. The AI tweaks your program every week automatically.</p></div>
+    </div>
+  </section>
+
+  <section class="how-section" id="how">
+    <div class="sec-tag">// The Process</div>
+    <h2 class="sec-title">HOW IT<br>ACTUALLY WORKS</h2>
+    <p class="sec-sub">Four steps and you're in your era.</p>
+    <div class="steps">
+      <div class="step lit reveal"><div class="snum">01</div><h4>Drop Your Stats</h4><p>Age, weight, height, goal. 60 seconds. No cap.</p></div>
+      <div class="step lit reveal"><div class="snum">02</div><h4>AI Builds Your Profile</h4><p>BMI, TDEE, and macro targets custom to your body.</p></div>
+      <div class="step reveal"><div class="snum">03</div><h4>Get Your Plans</h4><p>Workout + meal plan drop immediately. Start today.</p></div>
+      <div class="step reveal"><div class="snum">04</div><h4>Track & Level Up</h4><p>Log everything. AI adjusts weekly. You just show up.</p></div>
+    </div>
+  </section>
+
+  <section class="pricing-section" id="pricing">
+    <div class="sec-tag">// Pricing</div>
+    <h2 class="sec-title">NO BROKE<br>EXCUSES ✦</h2>
+    <p class="sec-sub">Cheaper than one protein bar. Cancel anytime.</p>
+    <div class="pricing-grid">
+      <div class="pricing-card reveal">
+        <div class="plan-name">Free Plan</div>
+        <div class="plan-price"><sup>$</sup>0<sub>/mo</sub></div>
+        <p class="plan-tag">Good for a vibe check.</p>
+        <ul class="plan-features"><li>AI Body Profiler (1x)</li><li>3-Day Sample Workout</li><li>1-Day Meal Preview</li><li class="off">AI Coach Chat</li><li class="off">Full Plans + Tracking</li><li class="off">Weekly AI Adjustments</li></ul>
+        <button class="btn-plan btn-plan-ghost" onclick="openAuth('signup')">GET STARTED FREE</button>
+      </div>
+      <div class="pricing-card featured reveal">
+        <div class="plan-name">Pro Plan</div>
+        <div class="plan-price"><sup>$</sup>5<sub>/mo</sub></div>
+        <p class="plan-tag">Everything unlocked. Real results.</p>
+        <ul class="plan-features"><li>Unlimited AI Body Profiler</li><li>Full 7-Day Workout Plans</li><li>Complete Meal Plans</li><li>Live AI Coach Chat 24/7</li><li>Progress Tracking + Charts</li><li>Weekly AI Adjustments</li><li>Priority Support</li></ul>
+        <button class="btn-plan btn-plan-lime" onclick="openPayModal('pro')"><span>UNLOCK PRO — $5/MO →</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="testi-section" id="testi">
+    <div class="sec-tag">// Real Talk</div>
+    <h2 class="sec-title">THE COMMUNITY<br>SAID WHAT?</h2>
+    <div class="testi-grid">
+      <div class="testi-card reveal"><div class="testi-q">"</div><p class="testi-text">bro the AI coach is genuinely like having a personal trainer in your pocket. asked it about my knee pain and it adjusted my whole plan instantly.</p><div class="testi-author"><div class="testi-avi" style="background:linear-gradient(135deg,#C8FF00,#00ff88)">JR</div><div><div class="testi-name">Jordan R.</div><div class="testi-handle">@jordanlifts · -22lbs in 3 months</div></div></div></div>
+      <div class="testi-card reveal"><div class="testi-q">"</div><p class="testi-text">$5 a month is literally nothing. I spend more on sparkling water lmao. The meal plans actually respect that I'm vegan and don't just give me salads.</p><div class="testi-author"><div class="testi-avi" style="background:linear-gradient(135deg,#FF2D78,#ff8c00)">MK</div><div><div class="testi-name">Maya K.</div><div class="testi-handle">@mayaglowsup · Vegan · Pro user</div></div></div></div>
+      <div class="testi-card reveal"><div class="testi-q">"</div><p class="testi-text">the progress tracker actually shows me my weight chart and then the AI tells me what's working. it's like data + coaching in one. slaps hard.</p><div class="testi-author"><div class="testi-avi" style="background:linear-gradient(135deg,#00cfff,#C8FF00)">TW</div><div><div class="testi-name">Tyler W.</div><div class="testi-handle">@twfit · Intermediate · Week 12</div></div></div></div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="sec-tag" style="text-align:center">// Are You Ready</div>
+    <h2 class="sec-title" style="text-align:center">STOP SCROLLING<br>START <span style="color:var(--lime)">SWEATING</span></h2>
+    <p class="sec-sub" style="text-align:center;margin:0 auto 32px">Your future self is waiting. $5 a month. Cancel any time.</p>
+    <div style="text-align:center">
+      <button class="btn-primary" style="font-size:1rem;padding:16px 44px" onclick="openPayModal('pro')"><span>Get Pro for $5/mo →</span></button>
+      <p class="cta-fine">No contracts. No commitment. Cancel any time.</p>
+    </div>
+  </section>
+
+  <footer class="l-footer">
+    <div class="l-footer-logo">SWEAT<span>.EXE</span></div>
+    <ul class="l-footer-links"><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">Contact</a></li><li><a href="#">Support</a></li></ul>
+    <div class="l-footer-copy">© 2025 SWEAT.EXE — Built different.</div>
+  </footer>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app-screen" class="screen">
+  <div class="sidebar" id="sidebar">
+    <div class="sb-logo" onclick="doLogout()">SWEAT<span>.EXE</span></div>
+    <div class="sb-user"><div class="sb-avi" id="sb-avi">U</div><div><div class="sb-uname" id="sb-uname">Athlete</div><div class="sb-plan" id="sb-plan">✦ FREE</div></div></div>
+    <div class="sb-section">
+      <div class="sb-lbl">Menu</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navTo('dashboard')"><span class="ni">🏠</span>Dashboard</div>
+      <div class="nav-item" data-page="bmi" onclick="navTo('bmi')"><span class="ni">🧬</span>BMI Calc</div>
+      <div class="nav-item" data-page="workout" onclick="navTo('workout')"><span class="ni">💪</span>Workouts</div>
+      <div class="nav-item" data-page="meals" onclick="navTo('meals')"><span class="ni">🥗</span>Meal Plan</div>
+      <div class="nav-item" data-page="progress" onclick="navTo('progress')"><span class="ni">📈</span>Progress</div>
+      <div class="nav-item" data-page="coach" onclick="navTo('coach')"><span class="ni">🤖</span>AI Coach</div>
+      <div class="nav-item" data-page="settings" onclick="navTo('settings')"><span class="ni">⚙️</span>Settings</div>
+    </div>
+    <div class="sb-section" style="margin-top:auto">
+      <div class="api-key-indicator" onclick="openAPISetup()" id="api-indicator">
+        <div class="api-status-dot" id="api-dot"></div>
+        <div class="api-key-text" id="api-key-txt">API Key: Not set</div>
+      </div>
+      <div class="nav-item" onclick="doLogout()" style="color:var(--pink)"><span class="ni">🚪</span>Logout</div>
+    </div>
+    <div class="sb-footer">Powered by Claude AI<br>SWEAT.EXE © 2025</div>
+  </div>
+  <div class="app-main">
+    <div class="topbar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="topbar-right">
+        <div class="ai-dot" id="top-ai-dot"></div>
+        <div class="ai-txt" id="top-ai-txt">AI Online</div>
+      </div>
+    </div>
+    <div class="app-content" id="app-content"></div>
+  </div>
+</div>
+
+<!-- ═══ AUTH OVERLAY ═══ -->
+<div class="overlay" id="auth-overlay">
+  <div class="o-box">
+    <button class="o-close" onclick="closeAuth()">×</button>
+    <div class="o-header"><div class="o-logo">SWEAT<span style="color:var(--pink)">.EXE</span></div><div class="o-tagline">Your AI Fitness OS</div></div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Login</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
+    </div>
+    <div class="o-body">
+      <div id="auth-signup-name" class="form-group" style="display:none"><label class="form-label">Your Name</label><input class="form-input" id="auth-name" placeholder="e.g. Jordan R."></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="auth-email" type="email" placeholder="you@email.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="auth-pass" type="password" placeholder="••••••••"></div>
+      <div class="o-err" id="auth-err"></div>
+      <button class="btn-auth" id="auth-btn" onclick="handleAuth()">LOGIN →</button>
+      <div class="o-hint" id="auth-hint">New here? Sign up free — no card needed</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STRIPE PAYMENT MODAL ═══ -->
+<div class="overlay" id="pay-overlay">
+  <div class="pay-box">
+    <button class="o-close" onclick="closePayModal()" style="color:var(--gray)">×</button>
+    <div class="pay-header">
+      <h2 id="pay-title">UNLOCK PRO</h2>
+      <p id="pay-sub">Full AI coaching for $5/month. Cancel anytime.</p>
+    </div>
+    <div class="pay-body" id="pay-body">
+      <div class="pay-summary">
+        <span id="pay-plan-label">SWEAT.EXE Pro Plan · Monthly</span>
+        <span id="pay-plan-price">$5.00/mo</span>
+      </div>
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="pay-name" placeholder="Your Name"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="pay-email" type="email" placeholder="you@email.com"></div>
+
+      <!-- Payment method tabs -->
+      <div class="stripe-tabs">
+        <button class="pay-tab active" id="tab-card" onclick="switchPayTab('card')">💳 Card</button>
+        <button class="pay-tab" id="tab-paypal" onclick="switchPayTab('paypal')">🅿 PayPal</button>
+      </div>
+
+      <!-- Card payment -->
+      <div id="card-section">
+        <div class="form-group"><label class="form-label">Card Number</label><input class="form-input" id="pay-card" placeholder="4242 4242 4242 4242" maxlength="19" oninput="fmtCard(this)"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Expiry</label><input class="form-input" id="pay-exp" placeholder="MM / YY" maxlength="7" oninput="fmtExp(this)"></div>
+          <div class="form-group"><label class="form-label">CVV</label><input class="form-input" id="pay-cvv" placeholder="•••" maxlength="4"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Cardholder Name</label><input class="form-input" id="pay-cname" placeholder="Name on card"></div>
+      </div>
+
+      <!-- PayPal -->
+      <div id="paypal-section" style="display:none">
+        <div style="background:var(--muted);border:1px solid var(--border);padding:20px;text-align:center;margin-bottom:14px">
+          <div style="font-size:2rem;margin-bottom:8px">🅿️</div>
+          <div style="font-size:.85rem;color:var(--gray);margin-bottom:4px">You'll be redirected to PayPal to complete your $5.00/mo subscription.</div>
+          <div style="font-size:.72rem;color:var(--lgray);font-family:'Space Mono',monospace">Secure payment via PayPal Subscriptions</div>
+        </div>
+      </div>
+
+      <div class="pay-err" id="pay-err"></div>
+      <button class="btn-pay-main" id="pay-btn" onclick="handlePay()"><span class="bt" id="pay-btn-txt">PAY $5.00 / MONTH →</span></button>
+      <p class="secure-note">🔒 256-bit SSL · No hidden fees · Cancel any time</p>
+      <div class="stripe-logo">Secured by <strong>Stripe</strong> &amp; <strong>PayPal</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ API KEY SETUP ═══ -->
+<div class="overlay" id="api-overlay">
+  <div class="api-setup-box">
+    <button class="o-close" onclick="closeAPISetup()">×</button>
+    <div class="o-header" style="border-bottom:1px solid var(--border)">
+      <div class="o-logo" style="color:var(--blue)">API <span style="color:var(--lime)">SETUP</span></div>
+      <div class="o-tagline">Connect Claude AI to power all features</div>
+    </div>
+    <div class="o-body">
+      <div class="api-note">
+        ℹ️ SWEAT.EXE uses the Anthropic Claude API to power all AI features. Add your API key below to enable: BMI Analysis, Workout Generation, Meal Planning, AI Coach Chat, and Progress Insights.<br><br>
+        Get a free key at <strong>console.anthropic.com</strong> — free tier is enough to get started.
+      </div>
+      <div class="form-group">
+        <label class="form-label">Anthropic API Key</label>
+        <input class="form-input" id="api-key-input" type="password" placeholder="sk-ant-api03-...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Key Nickname (optional)</label>
+        <input class="form-input" id="api-key-nick" placeholder="My Key">
+      </div>
+      <div id="api-test-result" style="display:none;padding:10px 13px;font-size:.75rem;font-family:'Space Mono',monospace;margin-bottom:12px"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-blue btn-blue-full" onclick="saveAPIKey()">SAVE & TEST KEY →</button>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:10px">
+        <button class="app-btn app-btn-ghost" style="flex:1;font-size:.72rem" onclick="clearAPIKey()">REMOVE KEY</button>
+        <button class="app-btn app-btn-ghost" style="flex:1;font-size:.72rem" onclick="closeAPISetup()">CANCEL</button>
+      </div>
+      <div style="margin-top:14px;font-size:.68rem;color:var(--lgray);font-family:'Space Mono',monospace;line-height:1.6">
+        🔒 Your API key is stored locally in your browser only. It is never sent to our servers. You are billed directly by Anthropic for API usage.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast">⚡ <span id="toast-msg"></span></div>
+
+<script>
+/* ═══ STORAGE ═══ */
+const S={
+  get:(k,fb=null)=>{try{const v=localStorage.getItem('sx_'+k);return v?JSON.parse(v):fb}catch{return fb}},
+  set:(k,v)=>{try{localStorage.setItem('sx_'+k,JSON.stringify(v))}catch{}}
+};
+
+/* ═══ STATE ═══ */
+let CU=S.get('session'); // current user
+let CP='dashboard';      // current page
+let payTab='card';
+let authMode='login';
+let chatHistory=[];      // AI coach chat history
+let chatCtx=null;        // profile context for coach
+
+/* ═══ STRIPE INIT ═══ */
+// Stripe is loaded but actual charging requires backend + secret key
+// This provides full UI/UX with test card support
+let stripe=null;
+try{ stripe=Stripe('pk_test_51OxQXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'); }catch(e){}
+
+/* ═══ API KEY ═══ */
+function getAPIKey(){return S.get('apikey','');}
+function updateAPIIndicator(){
+  const k=getAPIKey();
+  const dot=document.getElementById('api-dot');
+  const txt=document.getElementById('api-key-txt');
+  const topDot=document.getElementById('top-ai-dot');
+  const topTxt=document.getElementById('top-ai-txt');
+  if(!dot)return;
+  if(k){
+    dot.classList.add('active');
+    txt.textContent='API: ••••'+k.slice(-4);
+    if(topDot){topDot.style.background='var(--lime)';topDot.style.boxShadow='0 0 7px var(--lime)';}
+    if(topTxt)topTxt.textContent='AI Online';
+  }else{
+    dot.classList.remove('active');
+    txt.textContent='API Key: Not set';
+    if(topDot){topDot.style.background='var(--lgray)';topDot.style.boxShadow='none';}
+    if(topTxt)topTxt.textContent='AI Offline';
+  }
+}
+function openAPISetup(){document.getElementById('api-overlay').classList.add('open');document.body.style.overflow='hidden';const k=getAPIKey();if(k)document.getElementById('api-key-input').value=k;}
+function closeAPISetup(){document.getElementById('api-overlay').classList.remove('open');document.body.style.overflow='';}
+async function saveAPIKey(){
+  const k=document.getElementById('api-key-input').value.trim();
+  const nick=document.getElementById('api-key-nick').value.trim();
+  const res=document.getElementById('api-test-result');
+  if(!k){res.style.display='block';res.style.background='rgba(255,45,120,.1)';res.style.color='var(--pink)';res.textContent='⚠ Enter an API key.';return;}
+  res.style.display='block';res.style.background='rgba(200,255,0,.08)';res.style.color='var(--lime)';res.textContent='Testing connection...';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:20,messages:[{role:'user',content:'Say OK'}]})});
+    if(r.ok){
+      S.set('apikey',k);if(nick)S.set('apinick',nick);
+      res.textContent='✅ Connection successful! Key saved.';
+      updateAPIIndicator();
+      setTimeout(()=>{closeAPISetup();showToast('API key connected! AI features unlocked 🤖');},1200);
+    }else{const d=await r.json();res.style.background='rgba(255,45,120,.1)';res.style.color='var(--pink)';res.textContent='❌ Error: '+(d.error?.message||'Invalid key');}
+  }catch(e){res.style.background='rgba(255,45,120,.1)';res.style.color='var(--pink)';res.textContent='❌ Connection failed. Check key and try again.';}
+}
+function clearAPIKey(){S.set('apikey','');updateAPIIndicator();document.getElementById('api-key-input').value='';const r=document.getElementById('api-test-result');r.style.display='block';r.style.background='rgba(200,255,0,.08)';r.style.color='var(--lime)';r.textContent='API key removed.';}
+
+/* ═══ AI CALL ═══ */
+async function callAI(sys,msg,onChunk,history=[]){
+  const k=getAPIKey();
+  if(!k)throw new Error('NO_API_KEY');
+  const messages=[...history,{role:'user',content:msg}];
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01'},
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1500,stream:true,system:sys,messages})
+  });
+  if(!res.ok){const d=await res.json();throw new Error(d.error?.message||'AI error '+res.status);}
+  const reader=res.body.getReader(),dec=new TextDecoder();
+  let full='';
+  while(true){
+    const{done,value}=await reader.read();if(done)break;
+    for(const line of dec.decode(value).split('\n')){
+      if(line.startsWith('data: ')){try{const d=JSON.parse(line.slice(6));if(d.type==='content_block_delta'&&d.delta?.text){full+=d.delta.text;onChunk(full);}}catch{}}
+    }
+  }
+  return full;
+}
+
+function aiErrMsg(e){
+  if(e.message==='NO_API_KEY')return '⚠️ No API key set. Click "API Key: Not set" in the sidebar to add your Anthropic API key and unlock all AI features.';
+  return '❌ AI error: '+e.message+'. Check your API key in Settings.';
+}
+
+/* ═══ TOAST ═══ */
+let toastT;
+function showToast(msg){const t=document.getElementById('toast'),m=document.getElementById('toast-msg');m.textContent=msg;t.style.display='flex';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',3400);}
+
+/* ═══ REVEAL ═══ */
+const ro=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+/* ═══ AUTH ═══ */
+function openAuth(mode='login'){authMode=mode;switchAuthTab(mode);document.getElementById('auth-overlay').classList.add('open');document.body.style.overflow='hidden';}
+function closeAuth(){document.getElementById('auth-overlay').classList.remove('open');document.body.style.overflow='';}
+function switchAuthTab(mode){
+  authMode=mode;
+  document.getElementById('tab-login').classList.toggle('active',mode==='login');
+  document.getElementById('tab-signup').classList.toggle('active',mode==='signup');
+  document.getElementById('auth-signup-name').style.display=mode==='signup'?'block':'none';
+  document.getElementById('auth-btn').textContent=mode==='login'?'LOGIN →':'CREATE ACCOUNT →';
+  document.getElementById('auth-hint').textContent=mode==='login'?'No account? Sign up free':'Already have an account? Log in';
+  setAE('');
+}
+function setAE(msg){const el=document.getElementById('auth-err');el.textContent=msg;el.style.display=msg?'block':'none';}
+function handleAuth(){
+  const email=document.getElementById('auth-email').value.trim();
+  const pass=document.getElementById('auth-pass').value;
+  const name=document.getElementById('auth-name').value.trim();
+  if(!email||!pass){setAE('⚠ Fill in all fields.');return;}
+  const users=S.get('users',{});
+  if(authMode==='signup'){
+    if(!name){setAE('⚠ Enter your name.');return;}
+    if(users[email]){setAE('⚠ Account exists. Log in instead.');return;}
+    users[email]={name,password:pass,plan:'FREE',joined:new Date().toISOString()};
+    S.set('users',users);loginUser({email,name,plan:'FREE'});
+  }else{
+    const u=users[email];
+    if(!u||u.password!==pass){setAE('⚠ Wrong email or password.');return;}
+    loginUser({email,name:u.name,plan:u.plan});
+  }
+}
+function loginUser(u){S.set('session',u);CU=u;closeAuth();closePayModal();launchApp();}
+function doLogout(){S.set('session',null);CU=null;document.getElementById('app-screen').classList.remove('active');document.getElementById('landing-screen').classList.add('active');document.getElementById('sidebar').classList.remove('ready');showToast('Logged out. See you soon! 👋');}
+
+/* ═══ PAY MODAL ═══ */
+function openPayModal(plan){
+  const isFree=plan==='free';
+  document.getElementById('pay-title').textContent=isFree?'GET STARTED FREE':'UNLOCK PRO';
+  document.getElementById('pay-sub').textContent=isFree?'Create your free account.':'Full AI coaching for $5/month.';
+  document.getElementById('pay-plan-label').textContent=isFree?'SWEAT.EXE Free Plan':'SWEAT.EXE Pro Plan · Monthly';
+  document.getElementById('pay-plan-price').textContent=isFree?'$0.00':'$5.00/mo';
+  document.getElementById('pay-btn-txt').textContent=isFree?'CREATE FREE ACCOUNT →':'PAY $5.00 / MONTH →';
+  window._payPlan=plan;
+  document.getElementById('pay-overlay').classList.add('open');document.body.style.overflow='hidden';
+}
+function closePayModal(){document.getElementById('pay-overlay').classList.remove('open');document.body.style.overflow='';}
+function switchPayTab(t){
+  payTab=t;
+  document.getElementById('tab-card').classList.toggle('active',t==='card');
+  document.getElementById('tab-paypal').classList.toggle('active',t==='paypal');
+  document.getElementById('card-section').style.display=t==='card'?'block':'none';
+  document.getElementById('paypal-section').style.display=t==='paypal'?'block':'none';
+  document.getElementById('pay-btn-txt').textContent=t==='paypal'?'CONTINUE WITH PAYPAL →':'PAY $5.00 / MONTH →';
+}
+function fmtCard(el){let v=el.value.replace(/\D/g,'').substring(0,16);el.value=v.replace(/(.{4})/g,'$1 ').trim();}
+function fmtExp(el){let v=el.value.replace(/\D/g,'').substring(0,4);if(v.length>=2)v=v.substring(0,2)+' / '+v.substring(2);el.value=v;}
+function showPayErr(msg){const el=document.getElementById('pay-err');el.textContent=msg;el.style.display=msg?'block':'none';}
+
+function handlePay(){
+  const name=document.getElementById('pay-name').value.trim();
+  const email=document.getElementById('pay-email').value.trim();
+  if(!name||!email){showPayErr('⚠ Enter your name and email.');return;}
+  showPayErr('');
+  if(payTab==='paypal'){handlePayPal(name,email);return;}
+  // Card validation
+  const card=document.getElementById('pay-card').value.replace(/\s/g,'');
+  const exp=document.getElementById('pay-exp').value;
+  const cvv=document.getElementById('pay-cvv').value;
+  if(card.length<15){showPayErr('⚠ Enter a valid card number.');return;}
+  if(!exp||exp.length<7){showPayErr('⚠ Enter expiry date (MM / YY).');return;}
+  if(!cvv||cvv.length<3){showPayErr('⚠ Enter CVV.');return;}
+
+  const btn=document.getElementById('pay-btn');
+  document.getElementById('pay-btn-txt').textContent='PROCESSING...';
+  btn.disabled=true;
+
+  // Simulate Stripe payment processing
+  // In production: create PaymentIntent on your backend → stripe.confirmCardPayment()
+  setTimeout(()=>{
+    const plan=window._payPlan==='pro'?'PRO':'FREE';
+    const users=S.get('users',{});
+    if(!users[email]){users[email]={name,password:'sweat'+Date.now(),plan,joined:new Date().toISOString()};}
+    else{users[email].plan=plan;}
+    S.set('users',users);
+    loginUser({email,name,plan});
+    document.getElementById('pay-body').innerHTML=`
+      <div style="text-align:center;padding:36px 0">
+        <div style="font-size:3rem;margin-bottom:12px">🎉</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:1px;color:var(--lime);margin-bottom:8px">${plan==='PRO'?"YOU'RE PRO!":'WELCOME!'}</h3>
+        <p style="font-size:.86rem;color:var(--gray);line-height:1.65">${plan==='PRO'?"Your AI coach is live. Let's get to work.":'Account created. Start with your BMI!'}</p>
+        <div style="margin-top:16px;padding:12px 16px;background:rgba(200,255,0,.08);border:1px solid rgba(200,255,0,.2);font-size:.72rem;font-family:'Space Mono',monospace;color:var(--lime)">
+          ${plan==='PRO'?'✓ Payment processed via Stripe<br>✓ Pro plan activated<br>✓ AI Coach unlocked':'✓ Free account created'}
+        </div>
+        <button onclick="closePayModal()" style="margin-top:22px;padding:11px 28px;background:var(--lime);color:var(--dark);border:none;font-family:'Syne',sans-serif;font-weight:800;font-size:.86rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer">OPEN APP →</button>
+      </div>`;
+  },2000);
+}
+
+function handlePayPal(name,email){
+  const btn=document.getElementById('pay-btn');
+  document.getElementById('pay-btn-txt').textContent='REDIRECTING TO PAYPAL...';
+  btn.disabled=true;
+  // In production: create PayPal subscription order → redirect to PayPal approval URL
+  // PayPal SDK: paypal.Buttons({createSubscription:..., onApprove:...}).render()
+  setTimeout(()=>{
+    // Simulate PayPal return flow
+    const plan=window._payPlan==='pro'?'PRO':'FREE';
+    const users=S.get('users',{});
+    if(!users[email]){users[email]={name,password:'sweat'+Date.now(),plan,joined:new Date().toISOString()};}
+    else{users[email].plan=plan;}
+    S.set('users',users);
+    loginUser({email,name,plan});
+    document.getElementById('pay-body').innerHTML=`
+      <div style="text-align:center;padding:36px 0">
+        <div style="font-size:3rem;margin-bottom:12px">🅿️</div>
+        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:1px;color:var(--lime);margin-bottom:8px">PAYPAL APPROVED!</h3>
+        <p style="font-size:.86rem;color:var(--gray);line-height:1.65">Your PayPal subscription is active. $5/mo billed monthly.</p>
+        <button onclick="closePayModal()" style="margin-top:22px;padding:11px 28px;background:var(--lime);color:var(--dark);border:none;font-family:'Syne',sans-serif;font-weight:800;font-size:.86rem;cursor:pointer">OPEN APP →</button>
+      </div>`;
+  },2200);
+}
+
+/* ═══ LAUNCH APP ═══ */
+function launchApp(){
+  document.getElementById('landing-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  document.getElementById('sidebar').classList.add('ready');
+  document.getElementById('sb-avi').textContent=CU.name?.charAt(0)||'U';
+  document.getElementById('sb-uname').textContent=CU.name?.split(' ')[0]||'Athlete';
+  document.getElementById('sb-plan').textContent='✦ '+CU.plan;
+  updateAPIIndicator();
+  navTo('dashboard');
+  showToast('Welcome back, '+CU.name?.split(' ')[0]+'! 🔥');
+  if(!getAPIKey())setTimeout(()=>showToast('💡 Add your API key in the sidebar to unlock AI features!'),2000);
+}
+function navTo(page){
+  CP=page;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
+  const titles={dashboard:'Dashboard',bmi:'BMI Calculator',workout:'Workout Generator',meals:'Meal Planner',progress:'Progress Tracker',coach:'AI Coach Chat',settings:'Settings'};
+  document.getElementById('page-title').textContent=titles[page]||page;
+  renderPage(page);
+}
+function addLog(entry){const logs=S.get('logs_'+CU.email,[]);logs.push(entry);S.set('logs_'+CU.email,logs);}
+
+/* ═══ PAGE ROUTER ═══ */
+function renderPage(page){
+  const c=document.getElementById('app-content');c.innerHTML='';
+  ({dashboard:renderDashboard,bmi:renderBMI,workout:renderWorkout,meals:renderMeals,progress:renderProgress,coach:renderCoach,settings:renderSettings})[page]?.(c);
+}
+
+/* ═══ DASHBOARD ═══ */
+function renderDashboard(c){
+  const logs=S.get('logs_'+CU.email,[]);
+  const profile=S.get('profile_'+CU.email);
+  const wLogs=logs.filter(l=>l.type==='workout');
+  const mLogs=logs.filter(l=>l.type==='meal');
+  const streak=Math.min(wLogs.length,7);
+  const days=['M','T','W','T','F','S','S'];
+  const bars=days.map((d,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="flex:1;width:100%;background:${i<streak?'rgba(200,255,0,.4)':'rgba(200,255,0,.1)'};border:1px solid ${i<streak?'var(--lime)':'rgba(200,255,0,.2)'};min-height:${i<streak?26+Math.floor(i*7):10}px"></div><div style="font-size:.58rem;color:var(--gray);font-family:'Space Mono',monospace">${d}</div></div>`).join('');
+  const recent=logs.slice(-5).reverse().map(l=>`<div class="log-item"><div class="log-icon">${l.type==='workout'?'💪':l.type==='meal'?'🥗':l.type==='weight'?'⚖️':'📊'}</div><div style="flex:1"><div class="log-title">${l.title}</div><div class="log-meta">${new Date(l.date).toLocaleString()}</div></div><div class="${l.type==='workout'?'tag-lime':l.type==='meal'?'tag-pink':'tag-gray'}">${l.type}</div></div>`).join('')||'<div style="text-align:center;padding:18px;color:var(--gray);font-size:.83rem">No activity yet. Start with the BMI Calculator! 🧬</div>';
+  c.innerHTML=`
+    <div class="sec-head"><div class="sec-eyebrow">// Overview</div><div class="sec-h2">GM, ${CU.name?.split(' ')[0]||'ATHLETE'} 🔥</div></div>
+    ${!getAPIKey()?`<div style="background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.3);border-left:3px solid var(--blue);padding:11px 14px;margin-bottom:16px;font-size:.78rem;color:rgba(74,158,255,.9);font-family:'Space Mono',monospace">💡 Add your <strong>Anthropic API key</strong> in the sidebar to unlock all AI features. <span onclick="openAPISetup()" style="color:var(--lime);cursor:pointer;text-decoration:underline">Set up now →</span></div>`:''}
+    <div class="grid-4 mb20">
+      <div class="stat-card"><div class="sv">${streak}</div><div class="sk">Day Streak</div><div class="ss">Keep going 💪</div></div>
+      <div class="stat-card"><div class="sv">${wLogs.length}</div><div class="sk">Workouts Logged</div><div class="ss">Total sessions</div></div>
+      <div class="stat-card"><div class="sv">${profile?.bmi||'--'}</div><div class="sk">BMI</div><div class="ss">${profile?.bmiCat||'Not set'}</div></div>
+      <div class="stat-card"><div class="sv">${profile?.tdee||'--'}</div><div class="sk">TDEE kcal</div><div class="ss">Daily energy burn</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="a-card">
+        <div class="a-card-hd"><span>📅</span><span class="a-card-title">This Week</span></div>
+        <div class="a-card-bd">
+          <div style="display:flex;align-items:flex-end;gap:5px;height:72px">${bars}</div>
+          <div class="divider"></div>
+          <div class="flex jbet"><div><div class="txs tg">Workouts</div><div class="fbebas tl" style="font-size:1.3rem">${wLogs.length}</div></div><div><div class="txs tg">Meals Logged</div><div class="fbebas tl" style="font-size:1.3rem">${mLogs.length}</div></div><div><div class="txs tg">Streak</div><div class="fbebas tl" style="font-size:1.3rem">${streak}d</div></div></div>
+        </div>
+      </div>
+      <div class="a-card">
+        <div class="a-card-hd"><span>⚡</span><span class="a-card-title">Quick Status</span></div>
+        <div class="a-card-bd">
+          ${profile?[{l:'Protein Target',v:profile.protein+'g',p:72,c:'var(--lime)'},{l:'Calorie Goal',v:profile.targetCals+' kcal',p:55,c:'var(--pink)'},{l:'Hydration',v:'2.5L',p:80,c:'#44AAFF'}].map(r=>`<div style="margin-bottom:11px"><div class="flex jbet txs tg" style="margin-bottom:3px"><span>${r.l}</span><span style="color:${r.c}">${r.v}</span></div><div class="bar-track"><div class="bar-fill" style="width:${r.p}%;background:${r.c}"></div></div></div>`).join('')+'<div class="tag-lime" style="margin-top:8px">Profile Active</div>':`<div style="text-align:center;padding:18px;color:var(--gray);font-size:.83rem">🧬<br><br>No profile yet. <a href="#" onclick="navTo('bmi')" style="color:var(--lime)">Calculate BMI →</a></div>`}
+        </div>
+      </div>
+    </div>
+    <div class="a-card mt20">
+      <div class="a-card-hd"><span>🕒</span><span class="a-card-title">Recent Activity</span></div>
+      <div class="a-card-bd">${recent}</div>
+    </div>`;
+}
+
+/* ═══ BMI ═══ */
+function renderBMI(c){
+  const saved=S.get('profile_'+CU.email)||{};
+  c.innerHTML=`
+    <div class="sec-head"><div class="sec-eyebrow">// Body Analytics</div><div class="sec-h2">BMI + TDEE CALCULATOR 🧬</div></div>
+    <div class="grid-2">
+      <div class="a-card">
+        <div class="a-card-hd"><span>📋</span><span class="a-card-title">Your Stats</span></div>
+        <div class="a-card-bd">
+          <div class="grid-2">
+            <div class="form-group"><label class="form-label">Age</label><input class="form-input" id="ba" type="number" placeholder="25" value="${saved.age||''}"></div>
+            <div class="form-group"><label class="form-label">Gender</label><select class="form-select" id="bg"><option value="male" ${saved.gender==='male'?'selected':''}>Male</option><option value="female" ${saved.gender==='female'?'selected':''}>Female</option></select></div>
+            <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" id="bw" type="number" placeholder="70" value="${saved.weight||''}"></div>
+            <div class="form-group"><label class="form-label">Height (cm)</label><input class="form-input" id="bh" type="number" placeholder="175" value="${saved.height||''}"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Activity Level</label>
+            <select class="form-select" id="bact">
+              <option value="1.2" ${saved.activity==1.2?'selected':''}>Sedentary (desk job)</option>
+              <option value="1.375" ${saved.activity==1.375?'selected':''}>Lightly Active (1-3x/week)</option>
+              <option value="1.55" ${(!saved.activity||saved.activity==1.55)?'selected':''}>Moderately Active (3-5x/week)</option>
+              <option value="1.725" ${saved.activity==1.725?'selected':''}>Very Active (6-7x/week)</option>
+              <option value="1.9" ${saved.activity==1.9?'selected':''}>Athlete (2x/day)</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Primary Goal</label>
+            <select class="form-select" id="bgoal">
+              <option value="fat_loss" ${(!saved.goal||saved.goal==='fat_loss')?'selected':''}>Fat Loss 🔥</option>
+              <option value="muscle_gain" ${saved.goal==='muscle_gain'?'selected':''}>Muscle Gain 💪</option>
+              <option value="maintenance" ${saved.goal==='maintenance'?'selected':''}>Maintenance ⚖️</option>
+              <option value="endurance" ${saved.goal==='endurance'?'selected':''}>Endurance 🏃</option>
+            </select>
+          </div>
+          <button class="app-btn app-btn-lime app-btn-full" id="bmi-btn" onclick="runBMI()">CALCULATE + AI ANALYSIS →</button>
+        </div>
+      </div>
+      <div>
+        <div class="a-card mb16" id="bmi-results" style="display:${saved.bmi?'block':'none'}">
+          <div class="a-card-hd"><span>📊</span><span class="a-card-title">Your Metrics</span></div>
+          <div class="a-card-bd"><div class="grid-2" id="bmi-metrics">
+            ${saved.bmi?[{k:'BMI',v:saved.bmi,s:saved.bmiCat},{k:'TDEE',v:saved.tdee,s:'kcal/day'},{k:'Target Cal',v:saved.targetCals,s:'daily goal'},{k:'Protein',v:(saved.protein||'--')+'g',s:'daily target'}].map(m=>`<div class="stat-card"><div class="sv" style="font-size:1.7rem">${m.v}</div><div class="sk">${m.k}</div><div class="ss">${m.s}</div></div>`).join(''):''}
+          </div></div>
+        </div>
+        <div class="a-card">
+          <div class="a-card-hd"><span>🤖</span><span class="a-card-title">AI Analysis</span><div class="loader" id="bmi-loader" style="display:none;margin-left:auto"><div class="ldots"><span></span><span></span><span></span></div></div></div>
+          <div class="a-card-bd"><div id="bmi-ai-out" style="color:var(--gray);font-size:.83rem;text-align:center;padding:18px">${saved.lastAnalysis?`<div class="ai-block">${saved.lastAnalysis}</div>`:'Fill in your stats and click Calculate for AI-powered analysis.'}</div></div>
+        </div>
+      </div>
+    </div>`;
+}
+async function runBMI(){
+  const age=parseFloat(document.getElementById('ba').value);
+  const w=parseFloat(document.getElementById('bw').value);
+  const h=parseFloat(document.getElementById('bh').value);
+  const g=document.getElementById('bg').value;
+  const act=parseFloat(document.getElementById('bact').value);
+  const goal=document.getElementById('bgoal').value;
+  if(!age||!w||!h){showToast('⚠ Fill in age, weight and height.');return;}
+  const hm=h/100,bmi=(w/(hm*hm)).toFixed(1);
+  const cat=bmi<18.5?'Underweight':bmi<25?'Normal':bmi<30?'Overweight':'Obese';
+  const bmr=g==='male'?88.36+(13.4*w)+(4.8*h)-(5.7*age):447.6+(9.2*w)+(3.1*h)-(4.3*age);
+  const tdee=Math.round(bmr*act);
+  const tc=goal==='fat_loss'?tdee-500:goal==='muscle_gain'?tdee+300:tdee;
+  const prot=Math.round(w*(goal==='muscle_gain'?2.2:1.8));
+  const profile={bmi,bmiCat:cat,tdee,targetCals:tc,protein:prot,bmr:Math.round(bmr),age,weight:w,height:h,gender:g,activity:act,goal};
+  S.set('profile_'+CU.email,profile);
+  document.getElementById('bmi-results').style.display='block';
+  document.getElementById('bmi-metrics').innerHTML=[{k:'BMI',v:bmi,s:cat},{k:'TDEE',v:tdee,s:'kcal/day'},{k:'Target Cal',v:tc,s:'daily goal'},{k:'Protein',v:prot+'g',s:'daily target'}].map(m=>`<div class="stat-card"><div class="sv" style="font-size:1.7rem">${m.v}</div><div class="sk">${m.k}</div><div class="ss">${m.s}</div></div>`).join('');
+  addLog({type:'profile',title:`BMI: ${bmi} (${cat})`,date:new Date().toISOString()});
+  const btn=document.getElementById('bmi-btn');btn.disabled=true;btn.textContent='ANALYZING...';
+  document.getElementById('bmi-loader').style.display='flex';
+  document.getElementById('bmi-ai-out').innerHTML='';
+  try{
+    const txt=await callAI(
+      'You are an expert fitness coach and dietitian. Be direct, specific, motivating. Use emojis for sections. Keep it punchy and Gen Z friendly.',
+      `Analyze: Age:${age} Gender:${g} Weight:${w}kg Height:${h}cm BMI:${bmi}(${cat}) TDEE:${tdee} Target:${tc} Goal:${goal.replace('_',' ')}
+Give: 1)🔬 Health Summary 2)🍗 Exact macro split with grams 3)🎯 Top 3 focus areas 4)🔥 Motivational advice`,
+      t=>{const el=document.getElementById('bmi-ai-out');if(el){el.innerHTML='';const d=document.createElement('div');d.className='ai-block';d.textContent=t;el.appendChild(d);}});
+    profile.lastAnalysis=txt;S.set('profile_'+CU.email,profile);
+    showToast('Profile saved! 🧬');
+  }catch(e){document.getElementById('bmi-ai-out').innerHTML=`<div style="color:var(--gray);font-size:.83rem;padding:12px">${aiErrMsg(e)}</div>`;}
+  document.getElementById('bmi-loader').style.display='none';btn.disabled=false;btn.textContent='RECALCULATE →';
+}
+
+/* ═══ WORKOUT ═══ */
+function renderWorkout(c){
+  const p=S.get('profile_'+CU.email);
+  c.innerHTML=`
+    <div class="sec-head"><div class="sec-eyebrow">// AI Training</div><div class="sec-h2">WORKOUT PLAN GENERATOR 💪</div></div>
+    ${!p?'<div class="warn-bar">⚠ No profile — run BMI Calc first for a fully personalized plan.</div>':''}
+    <div class="grid-2">
+      <div class="a-card">
+        <div class="a-card-hd"><span>⚙️</span><span class="a-card-title">Plan Settings</span></div>
+        <div class="a-card-bd">
+          <div class="grid-2">
+            <div class="form-group"><label class="form-label">Days/Week</label><select class="form-select" id="wd"><option>3</option><option>4</option><option selected>5</option><option>6</option></select></div>
+            <div class="form-group"><label class="form-label">Level</label><select class="form-select" id="wl"><option value="beginner">Beginner</option><option value="intermediate" selected>Intermediate</option><option value="advanced">Advanced</option></select></div>
+          </div>
+          <div class="form-group"><label class="form-label">Equipment</label><select class="form-select" id="we"><option value="gym">Full Gym</option><option value="dumbbells">Dumbbells Only</option><option value="bodyweight">Bodyweight Only</option><option value="home_gym">Home Gym</option></select></div>
+          <div class="form-group"><label class="form-label">Training Split</label><select class="form-select" id="ws"><option value="push_pull_legs">Push / Pull / Legs</option><option value="upper_lower">Upper / Lower</option><option value="full_body">Full Body</option><option value="bro_split">Bro Split</option></select></div>
+          <div class="form-group"><label class="form-label">Primary Focus</label><select class="form-select" id="wf"><option value="strength">Strength</option><option value="hypertrophy">Hypertrophy</option><option value="fat_loss">Fat Loss / Cardio Mix</option><option value="athletic">Full Body Athletic</option></select></div>
+          <div class="form-group"><label class="form-label">Special Notes (optional)</label><input class="form-input" id="wn" placeholder="e.g. bad knee, no barbell, want more cardio..."></div>
+          <button class="app-btn app-btn-lime app-btn-full" id="w-btn" onclick="genWorkout()">GENERATE PLAN →</button>
+        </div>
+      </div>
+      <div class="a-card">
+        <div class="a-card-hd"><span>🤖</span><span class="a-card-title">Your AI Plan</span><div class="loader" id="w-loader" style="display:none;margin-left:auto"><div class="ldots"><span></span><span></span><span></span></div></div></div>
+        <div class="a-card-bd"><div id="w-out" style="color:var(--gray);font-size:.83rem;text-align:center;padding:32px 0">🏋️<br><br>Configure and click Generate.</div></div>
+      </div>
+    </div>`;
+}
+async function genWorkout(){
+  const p=S.get('profile_'+CU.email)||{};
+  const days=document.getElementById('wd').value,level=document.getElementById('wl').value;
+  const eq=document.getElementById('we').value,split=document.getElementById('ws').value;
+  const focus=document.getElementById('wf').value,notes=document.getElementById('wn').value;
+  const btn=document.getElementById('w-btn');btn.disabled=true;btn.textContent='BUILDING...';
+  document.getElementById('w-loader').style.display='flex';document.getElementById('w-out').innerHTML='';
+  try{
+    await callAI('You are an elite personal trainer. Create precise, detailed workout plans with Day headers, exercise names, sets×reps, rest times. Be specific and motivating.',
+      `Create a ${days}-day workout plan:
+Profile: Age ${p.age||25} | BMI ${p.bmi||24} | Goal: ${p.goal?.replace('_',' ')||'fat loss'} | TDEE: ${p.tdee||2000}
+Level: ${level} | Equipment: ${eq} | Split: ${split.replace(/_/g,' ')} | Focus: ${focus.replace(/_/g,' ')}
+Notes: ${notes||'none'} ${parseFloat(p.bmi||0)>30?'| IMPORTANT: Low impact, protect joints.':''}
+Include warm-up, working sets with exact reps/sets/rest, cool-down, and a pro tip per exercise.`,
+      t=>{const el=document.getElementById('w-out');if(el){el.innerHTML='';const d=document.createElement('div');d.className='ai-block';d.textContent=t;el.appendChild(d);}});
+    addLog({type:'workout',title:`${days}-Day ${split.replace(/_/g,' ')} Plan`,date:new Date().toISOString()});
+    showToast('Plan ready! 💪');
+  }catch(e){document.getElementById('w-out').innerHTML=`<div style="color:var(--gray);font-size:.83rem;padding:12px">${aiErrMsg(e)}</div>`;}
+  document.getElementById('w-loader').style.display='none';btn.disabled=false;btn.textContent='REGENERATE →';
+}
+
+/* ═══ MEALS ═══ */
+function renderMeals(c){
+  const p=S.get('profile_'+CU.email);
+  c.innerHTML=`
+    <div class="sec-head"><div class="sec-eyebrow">// AI Nutrition</div><div class="sec-h2">MEAL PLAN GENERATOR 🥗</div></div>
+    ${p?`<div class="grid-4 mb16">${[{k:'Target Cal',v:p.targetCals},{k:'Protein',v:p.protein+'g'},{k:'BMI',v:p.bmi},{k:'Goal',v:p.goal?.replace('_',' ')}].map(s=>`<div class="stat-card"><div class="sv" style="font-size:1.5rem">${s.v}</div><div class="sk">${s.k}</div></div>`).join('')}</div>`:''}
+    <div class="grid-2">
+      <div class="a-card">
+        <div class="a-card-hd"><span>🍽️</span><span class="a-card-title">Meal Preferences</span></div>
+        <div class="a-card-bd">
+          <div class="form-group"><label class="form-label">Dietary Restriction</label><select class="form-select" id="md"><option value="none">None</option><option value="vegan">Vegan 🌱</option><option value="vegetarian">Vegetarian</option><option value="gluten_free">Gluten-Free</option><option value="dairy_free">Dairy-Free</option><option value="keto">Keto</option><option value="halal">Halal</option><option value="paleo">Paleo</option></select></div>
+          <div class="grid-2">
+            <div class="form-group"><label class="form-label">Meals Per Day</label><select class="form-select" id="mc"><option>3</option><option>4</option><option selected>5</option><option>6</option></select></div>
+            <div class="form-group"><label class="form-label">Budget</label><select class="form-select" id="mb"><option value="low">Budget 💰</option><option value="medium" selected>Medium 💰💰</option><option value="high">Flexible 💰💰💰</option></select></div>
+          </div>
+          <div class="form-group"><label class="form-label">Cuisine Preference</label><select class="form-select" id="mcu"><option value="mixed">Mixed / No Preference</option><option value="mediterranean">Mediterranean</option><option value="asian">Asian</option><option value="american">American</option><option value="indian">Indian</option><option value="mexican">Mexican</option></select></div>
+          <div class="form-group"><label class="form-label">Foods to Avoid</label><input class="form-input" id="mav" placeholder="e.g. broccoli, mushrooms, fish..."></div>
+          <div class="form-group"><label class="form-label">Allergies</label><input class="form-input" id="mall" placeholder="e.g. nuts, shellfish, soy..."></div>
+          <button class="app-btn app-btn-lime app-btn-full" id="m-btn" onclick="genMeal()">GENERATE MEAL PLAN →</button>
+        </div>
+      </div>
+      <div class="a-card">
+        <div class="a-card-hd"><span>🤖</span><span class="a-card-title">Your AI Meal Plan</span><div class="loader" id="m-loader" style="display:none;margin-left:auto"><div class="ldots"><span></span><span></span><span></span></div></div></div>
+        <div class="a-card-bd"><div id="m-out" style="color:var(--gray);font-size:.83rem;text-align:center;padding:32px 0">🥑<br><br>Set preferences and generate your custom meal plan.</div></div>
+      </div>
+    </div>`;
+}
+async function genMeal(){
+  const p=S.get('profile_'+CU.email)||{targetCals:2000,protein:150,goal:'fat_loss'};
+  const d=document.getElementById('md').value,c=document.getElementById('mc').value;
+  const b=document.getElementById('mb').value,cu=document.getElementById('mcu').value;
+  const av=document.getElementById('mav').value||'none',al=document.getElementById('mall').value||'none';
+  const btn=document.getElementById('m-btn');btn.disabled=true;btn.textContent='COOKING...';
+  document.getElementById('m-loader').style.display='flex';document.getElementById('m-out').innerHTML='';
+  try{
+    await callAI('You are a clinical nutritionist. Create detailed practical meal plans with exact measurements (grams) and macro breakdowns. Format clearly with meal headers.',
+      `1-day meal plan (${c} meals):
+Target: ${p.targetCals||2000} kcal | Protein: ${p.protein||150}g | Goal: ${p.goal?.replace('_',' ')||'fat loss'}
+Diet: ${d} | Budget: ${b} | Cuisine: ${cu} | Avoid: ${av} | Allergies: ${al}
+For each meal: Name, ingredient amounts in grams, quick prep (3 sentences), macros (P/C/F/cal). End with daily total. Make it realistic and delicious — no boring meals!`,
+      t=>{const el=document.getElementById('m-out');if(el){el.innerHTML='';const d2=document.createElement('div');d2.className='ai-block';d2.textContent=t;el.appendChild(d2);}});
+    addLog({type:'meal',title:`Meal Plan (${p.targetCals||2000} kcal, ${d})`,date:new Date().toISOString()});
+    showToast('Meal plan ready! 🥗');
+  }catch(e){document.getElementById('m-out').innerHTML=`<div style="color:var(--gray);font-size:.83rem;padding:12px">${aiErrMsg(e)}</div>`;}
+  document.getElementById('m-loader').style.display='none';btn.disabled=false;btn.textContent='REGENERATE →';
+}
+
+/* ═══ PROGRESS ═══ */
+function renderProgress(c){
+  const weights=S.get('weights_'+CU.email,[]);
+  const wlogs=S.get('wklogs_'+CU.email,[]);
+  const minW=weights.length?Math.min(...weights.map(x=>x.w)):0;
+  const maxW=weights.length?Math.max(...weights.map(x=>x.w)):100;
+  const range=maxW-minW||1;
+  const chart=weights.length<2?'<div style="text-align:center;color:var(--gray);font-size:.8rem;padding:14px">Log 2+ weigh-ins to see your chart.</div>':
+    `<div style="display:flex;align-items:flex-end;gap:2px;height:84px;margin-bottom:6px">${weights.slice(-16).map((x,i,a)=>{const h=Math.max(6,((x.w-minW)/range)*68+8);const l=i===a.length-1;return`<div style="flex:1;height:${h}px;background:${l?'rgba(200,255,0,.5)':'rgba(200,255,0,.18)'};border:1px solid ${l?'var(--lime)':'rgba(200,255,0,.28)'};" title="${x.w}kg on ${new Date(x.date).toLocaleDateString()}"></div>`}).join('')}</div>
+     <div class="flex jbet txs tg"><span>${new Date(weights[Math.max(0,weights.length-16)].date).toLocaleDateString()}</span><span>Now: <span class="tl">${weights[weights.length-1].w}kg</span></span></div>`;
+  const histRows=wlogs.slice().reverse().slice(0,15).map(l=>`<tr><td class="fw8">${l.exercise}</td><td><span class="tl fmono">${l.sets}×${l.reps}</span></td><td>${l.kg||'—'}</td><td class="tg txs">${new Date(l.date).toLocaleDateString()}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--gray);padding:14px">No exercises logged yet.</td></tr>';
+  c.innerHTML=`
+    <div class="sec-head"><div class="sec-eyebrow">// Analytics</div><div class="sec-h2">PROGRESS TRACKER 📈</div></div>
+    <div class="grid-4 mb16">
+      <div class="stat-card"><div class="sv">${weights.length}</div><div class="sk">Weigh-ins</div></div>
+      <div class="stat-card"><div class="sv">${wlogs.length}</div><div class="sk">Exercises Logged</div></div>
+      <div class="stat-card"><div class="sv">${weights.length>1?((weights[weights.length-1].w-weights[0].w).toFixed(1)):'--'}</div><div class="sk">kg Change</div></div>
+      <div class="stat-card"><div class="sv">${weights.length?weights[weights.length-1].w:'--'}</div><div class="sk">Current kg</div></div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="a-card mb16">
+          <div class="a-card-hd"><span>⚖️</span><span class="a-card-title">Log Weight</span></div>
+          <div class="a-card-bd">
+            <div class="grid-2"><div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" id="pw" type="number" step=".1" placeholder="70.5"></div><div class="form-group"><label class="form-label">Note</label><input class="form-input" id="pn" placeholder="Feeling strong!"></div></div>
+            <button class="app-btn app-btn-lime app-btn-full" onclick="logWeight()">LOG WEIGHT →</button>
+          </div>
+        </div>
+        <div class="a-card">
+          <div class="a-card-hd"><span>💪</span><span class="a-card-title">Log Exercise</span></div>
+          <div class="a-card-bd">
+            <div class="form-group"><label class="form-label">Exercise</label><input class="form-input" id="pex" placeholder="e.g. Bench Press"></div>
+            <div class="grid-2">
+              <div class="form-group"><label class="form-label">Sets</label><input class="form-input" id="ps" type="number" placeholder="4"></div>
+              <div class="form-group"><label class="form-label">Reps</label><input class="form-input" id="pr" type="number" placeholder="10"></div>
+              <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" id="pkg" type="number" placeholder="80"></div>
+              <div class="form-group"><label class="form-label">Duration (min)</label><input class="form-input" id="pd" type="number" placeholder="45"></div>
+            </div>
+            <button class="app-btn app-btn-lime app-btn-full" onclick="logExercise()">LOG EXERCISE →</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="a-card mb16"><div class="a-card-hd"><span>📉</span><span class="a-card-title">Weight Chart</span></div><div class="a-card-bd">${chart}</div></div>
+        <div class="a-card mb16"><div class="a-card-hd"><span>📋</span><span class="a-card-title">Exercise History</span></div><div class="a-card-bd" style="overflow-x:auto"><table class="data-tbl"><thead><tr><th>Exercise</th><th>Sets×Reps</th><th>kg</th><th>Date</th></tr></thead><tbody>${histRows}</tbody></table></div></div>
+        <div class="a-card"><div class="a-card-hd"><span>🤖</span><span class="a-card-title">AI Insights</span><div class="loader" id="pi-loader" style="display:none;margin-left:auto"><div class="ldots"><span></span><span></span><span></span></div></div></div>
+          <div class="a-card-bd"><div id="pi-out" style="color:var(--gray);font-size:.8rem;text-align:center;padding:14px">Log data then get AI analysis.</div><button class="app-btn app-btn-ghost app-btn-full mt16" id="pi-btn" onclick="getInsights()">GET AI INSIGHTS →</button></div>
+        </div>
+      </div>
+    </div>`;
+}
+function logWeight(){const w=document.getElementById('pw').value;if(!w){showToast('⚠ Enter weight.');return;}const ws=S.get('weights_'+CU.email,[]);ws.push({w:parseFloat(w),note:document.getElementById('pn').value,date:new Date().toISOString()});S.set('weights_'+CU.email,ws);addLog({type:'weight',title:`Weight: ${w}kg`,date:new Date().toISOString()});showToast(`${w}kg logged! ⚖️`);renderPage('progress');}
+function logExercise(){const ex=document.getElementById('pex').value.trim();if(!ex){showToast('⚠ Enter exercise.');return;}const wl=S.get('wklogs_'+CU.email,[]);wl.push({exercise:ex,sets:document.getElementById('ps').value,reps:document.getElementById('pr').value,kg:document.getElementById('pkg').value,duration:document.getElementById('pd').value,date:new Date().toISOString()});S.set('wklogs_'+CU.email,wl);addLog({type:'workout',title:`${ex} — ${document.getElementById('ps').value}×${document.getElementById('pr').value}`,date:new Date().toISOString()});showToast(`${ex} logged! 💪`);renderPage('progress');}
+async function getInsights(){
+  const ws=S.get('weights_'+CU.email,[]),wl=S.get('wklogs_'+CU.email,[]),p=S.get('profile_'+CU.email);
+  const btn=document.getElementById('pi-btn');btn.disabled=true;btn.textContent='ANALYZING...';
+  document.getElementById('pi-loader').style.display='flex';document.getElementById('pi-out').innerHTML='';
+  const wc=ws.length>1?(ws[ws.length-1].w-ws[0].w).toFixed(1):0;
+  try{
+    await callAI('You are a data-driven fitness coach. Analyze progress and give specific, honest, actionable insights with numbers.',
+      `Progress: Goal: ${p?.goal?.replace('_',' ')||'unknown'} | Target: ${p?.targetCals||'?'} kcal
+Weights: ${ws.slice(-10).map(x=>x.w+'kg').join(' → ')} | Change: ${wc}kg | Exercises logged: ${wl.length}
+Recent: ${wl.slice(-5).map(l=>l.exercise).join(', ')||'none'}
+Give: 1)📊 Progress assessment 2)✅ What's working 3)⚠️ What to adjust 4)🎯 Next 2-week focus`,
+      t=>{const el=document.getElementById('pi-out');if(el){el.innerHTML='';const d=document.createElement('div');d.className='ai-block';d.textContent=t;el.appendChild(d);}});
+  }catch(e){document.getElementById('pi-out').innerHTML=`<div style="color:var(--gray);font-size:.8rem;padding:12px">${aiErrMsg(e)}</div>`;}
+  document.getElementById('pi-loader').style.display='none';btn.disabled=false;btn.textContent='REFRESH →';
+}
+
+/* ═══ AI COACH CHAT ═══ */
+function renderCoach(c){
+  const p=S.get('profile_'+CU.email);
+  chatCtx=p?`User profile: Age ${p.age}, BMI ${p.bmi} (${p.bmiCat}), Goal: ${p.goal?.replace('_',' ')}, TDEE: ${p.tdee} kcal, Target: ${p.targetCals} kcal, Protein: ${p.protein}g`:'No profile data available yet.';
+  if(!chatHistory.length){
+    chatHistory=[{role:'assistant',content:`Hey ${CU.name?.split(' ')[0]||'there'}! 👋 I'm your SWEAT.EXE AI coach. I'm here 24/7 to help with:\n\n💪 Workout advice & form tips\n🥗 Nutrition & meal timing\n📊 Reading your progress data\n🧠 Training strategy & recovery\n💬 Literally anything fitness-related\n\nWhat's on your mind? Let's get to work! 🔥`}];
+  }
+  const qPrompts=[
+    '🏋️ How many sets per muscle per week?',
+    '🥗 Best foods for muscle gain?',
+    '😴 How important is sleep for gains?',
+    '🤕 My knee hurts when I squat — help?',
+    '📉 I stopped losing weight — what now?',
+    '⏱️ Should I do fasted cardio?',
+    '💊 Do I need creatine?',
+    '🔥 Best way to break a plateau?',
+  ];
+  c.innerHTML=`
+    <div class="sec-head"><div class="sec-eyebrow">// Your Personal AI</div><div class="sec-h2">AI COACH CHAT 🤖</div></div>
+    <div class="coach-layout">
+      <div class="coach-sidebar">
+        <div class="a-card">
+          <div class="a-card-hd"><span>⚡</span><span class="a-card-title">Quick Topics</span></div>
+          <div class="a-card-bd">
+            <div class="quick-prompts" id="quick-prompts">
+              ${qPrompts.map(q=>`<button class="qp-btn" onclick="sendQuick('${q.replace(/'/g,"\\'")}')">  ${q}</button>`).join('')}
+            </div>
+          </div>
+        </div>
+        ${p?`<div class="a-card">
+          <div class="a-card-hd"><span>📊</span><span class="a-card-title">Your Profile</span></div>
+          <div class="a-card-bd">
+            ${[{k:'BMI',v:p.bmi+' ('+p.bmiCat+')'},{k:'TDEE',v:p.tdee+' kcal'},{k:'Goal',v:p.goal?.replace('_',' ')},{k:'Target',v:p.targetCals+' kcal'}].map(x=>`<div class="flex jbet" style="margin-bottom:8px"><span class="txs tg">${x.k}</span><span class="txs tl">${x.v}</span></div>`).join('')}
+          </div>
+        </div>`:''}
+        <button class="app-btn app-btn-ghost app-btn-full" onclick="clearChat()">CLEAR CHAT</button>
+      </div>
+
+      <div class="chat-window">
+        <div class="chat-hd">
+          <div class="chat-hd-avi">🤖</div>
+          <div><div class="chat-hd-name">SWEAT Coach</div><div class="chat-hd-status">● Online • Powered by Claude AI</div></div>
+          ${!getAPIKey()?`<div class="tag-blue" style="margin-left:auto" onclick="openAPISetup()" style="cursor:pointer">Set API Key</div>`:''}
+        </div>
+        <div class="chat-messages" id="chat-msgs">${renderMsgs()}</div>
+        <div class="typing-indicator" id="typing"><div class="msg-avi coach">🤖</div><div class="msg-bubble" style="background:var(--muted);border:1px solid var(--border);border-radius:0 10px 10px 10px;padding:11px 14px"><div class="ldots"><span></span><span></span><span></span></div></div></div>
+        <div class="chat-input-area">
+          <textarea class="chat-input" id="chat-in" placeholder="Ask your coach anything..." rows="1" oninput="autoResize(this)" onkeydown="chatKey(event)"></textarea>
+          <button class="btn-send" id="send-btn" onclick="sendMsg()">SEND →</button>
+        </div>
+      </div>
+    </div>`;
+  scrollChat();
+}
+function renderMsgs(){
+  return chatHistory.map(m=>{
+    const isUser=m.role==='user';
+    const initials=isUser?(CU.name?.charAt(0)||'U'):'🤖';
+    const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    return`<div class="msg ${isUser?'user':'coach'}"><div class="msg-avi ${isUser?'user-avi-c':'coach'}">${initials}</div><div><div class="msg-bubble">${m.content}</div><div class="msg-time">${t}</div></div></div>`;
+  }).join('');
+}
+function scrollChat(){setTimeout(()=>{const el=document.getElementById('chat-msgs');if(el)el.scrollTop=el.scrollHeight;},50);}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function sendQuick(q){const input=document.getElementById('chat-in');if(input){input.value=q;sendMsg();}}
+function clearChat(){chatHistory=[];renderPage('coach');}
+async function sendMsg(){
+  const input=document.getElementById('chat-in');
+  const msg=input?.value.trim();
+  if(!msg)return;
+  input.value='';input.style.height='auto';
+  chatHistory.push({role:'user',content:msg});
+  const msgsEl=document.getElementById('chat-msgs');
+  if(msgsEl)msgsEl.innerHTML=renderMsgs();
+  document.getElementById('typing').classList.add('show');
+  document.getElementById('send-btn').disabled=true;
+  scrollChat();
+  try{
+    const sys=`You are SWEAT Coach, an expert personal trainer and nutritionist built into SWEAT.EXE fitness app. You are upbeat, knowledgeable, motivating and Gen Z friendly. Use emojis naturally. Give specific, actionable advice. Keep responses concise but helpful (2-4 sentences unless detail is needed).
+
+${chatCtx}
+
+Always personalize advice to their profile when relevant. If they ask about exercises, give specific form cues. If nutrition, give specific numbers. Never be vague.`;
+    const history=chatHistory.slice(0,-1).map(h=>({role:h.role,content:h.content}));
+    let reply='';
+    await callAI(sys,msg,t=>{reply=t;const typing=document.getElementById('typing');if(typing)typing.classList.remove('show');const msgs=document.getElementById('chat-msgs');if(msgs){const all=[...chatHistory.slice(0,-1),{role:'user',content:msg},{role:'assistant',content:t}];msgs.innerHTML=all.map(m=>{const isUser=m.role==='user';const initials=isUser?(CU.name?.charAt(0)||'U'):'🤖';const tm=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});return`<div class="msg ${isUser?'user':'coach'}"><div class="msg-avi ${isUser?'user-avi-c':'coach'}">${initials}</div><div><div class="msg-bubble">${m.content}</div><div class="msg-time">${tm}</div></div></div>`;}).join('');msgs.scrollTop=msgs.scrollHeight;}},history);
+    chatHistory.push({role:'assistant',content:reply});
+  }catch(e){
+    document.getElementById('typing').classList.remove('show');
+    chatHistory.push({role:'assistant',content:aiErrMsg(e)});
+    const msgs=document.getElementById('chat-msgs');if(msgs){msgs.innerHTML=renderMsgs();msgs.scrollTop=msgs.scrollHeight;}
+  }
+  const sendBtn=document.getElementById('send-btn');if(sendBtn)sendBtn.disabled=false;
+  scrollChat();
+}
+
+/* ═══ SETTINGS ═══ */
+function renderSettings(c){
+  const p=S.get('profile_'+CU.email)||{};
+  const k=getAPIKey();
+  const nick=S.get('apinick','');
+  c.innerHTML=`
+    <div class="sec-head"><div class="sec-eyebrow">// Account</div><div class="sec-h2">SETTINGS ⚙️</div></div>
+    <div class="grid-2">
+      <div>
+        <div class="a-card mb16">
+          <div class="a-card-hd"><span>👤</span><span class="a-card-title">Account Info</span></div>
+          <div class="a-card-bd">
+            ${[{k:'Name',v:CU.name},{k:'Email',v:CU.email},{k:'Plan',v:CU.plan},{k:'Joined',v:S.get('users',{})[CU.email]?.joined?new Date(S.get('users',{})[CU.email].joined).toLocaleDateString():'—'}].map(x=>`<div class="flex jbet" style="padding:10px 0;border-bottom:1px solid var(--border)"><span class="txs tg">${x.k}</span><span class="tsm fw8">${x.v}</span></div>`).join('')}
+            <div class="mt16 flex gap10">
+              ${CU.plan==='FREE'?`<button class="app-btn app-btn-lime" onclick="openPayModal('pro')">UPGRADE TO PRO →</button>`:`<div class="tag-lime">✓ Pro Active</div>`}
+            </div>
+          </div>
+        </div>
+
+        <div class="a-card mb16">
+          <div class="a-card-hd"><span>🔑</span><span class="a-card-title">API Key</span></div>
+          <div class="a-card-bd">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div class="api-status-dot ${k?'active':''}"></div>
+              <div class="tsm">${k?`Connected ${nick?'('+nick+')':''} — ••••${k.slice(-6)}`:'Not connected'}</div>
+            </div>
+            <div style="font-size:.75rem;color:var(--gray);line-height:1.6;margin-bottom:14px">The Anthropic API key powers all AI features: BMI analysis, workout generation, meal plans, AI coach chat, and progress insights.</div>
+            <button class="app-btn ${k?'app-btn-ghost':'app-btn-lime'} app-btn-full" onclick="openAPISetup()">${k?'CHANGE API KEY':'ADD API KEY →'}</button>
+            ${k?`<button class="app-btn app-btn-ghost app-btn-full mt16" onclick="clearAndRefresh()" style="color:var(--pink);border-color:var(--pink)">REMOVE KEY</button>`:''}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="a-card mb16">
+          <div class="a-card-hd"><span>🧬</span><span class="a-card-title">Fitness Profile</span></div>
+          <div class="a-card-bd">
+            ${p.bmi?[{k:'BMI',v:p.bmi+' ('+p.bmiCat+')'},{k:'TDEE',v:p.tdee+' kcal'},{k:'Target Calories',v:p.targetCals+' kcal'},{k:'Protein Target',v:p.protein+'g/day'},{k:'Goal',v:p.goal?.replace('_',' ')},{k:'Age',v:p.age},{k:'Weight',v:p.weight+'kg'},{k:'Height',v:p.height+'cm'}].map(x=>`<div class="flex jbet" style="padding:9px 0;border-bottom:1px solid var(--border)"><span class="txs tg">${x.k}</span><span class="tsm fw8">${x.v}</span></div>`).join('')+`<button class="app-btn app-btn-ghost app-btn-full mt16" onclick="navTo('bmi')">UPDATE PROFILE →</button>`:'<div style="text-align:center;padding:18px;color:var(--gray);font-size:.83rem">No profile yet.<br><br><button class="app-btn app-btn-lime" onclick="navTo(\'bmi\')">CALCULATE NOW →</button></div>'}
+          </div>
+        </div>
+
+        <div class="a-card mb16">
+          <div class="a-card-hd"><span>📊</span><span class="a-card-title">Data Summary</span></div>
+          <div class="a-card-bd">
+            ${[{k:'Activity Logs',v:S.get('logs_'+CU.email,[]).length+' entries'},{k:'Weigh-ins',v:S.get('weights_'+CU.email,[]).length+' entries'},{k:'Exercises Logged',v:S.get('wklogs_'+CU.email,[]).length+' entries'},{k:'Coach Messages',v:chatHistory.length+' messages'}].map(x=>`<div class="flex jbet" style="padding:9px 0;border-bottom:1px solid var(--border)"><span class="txs tg">${x.k}</span><span class="tsm fw8 tl">${x.v}</span></div>`).join('')}
+            <button class="app-btn app-btn-ghost app-btn-full mt16" onclick="clearAllData()" style="color:var(--pink);border-color:var(--pink)">CLEAR ALL MY DATA</button>
+          </div>
+        </div>
+
+        <div class="a-card">
+          <div class="a-card-hd"><span>💳</span><span class="a-card-title">Billing</span></div>
+          <div class="a-card-bd">
+            <div class="flex jbet" style="padding:9px 0;border-bottom:1px solid var(--border)"><span class="txs tg">Plan</span><span class="tsm fw8">${CU.plan}</span></div>
+            <div class="flex jbet" style="padding:9px 0;border-bottom:1px solid var(--border)"><span class="txs tg">Amount</span><span class="tsm fw8">${CU.plan==='PRO'?'$5.00 / month':'Free'}</span></div>
+            <div class="flex jbet" style="padding:9px 0"><span class="txs tg">Status</span><span class="tag-lime">Active</span></div>
+            ${CU.plan==='PRO'?`<button class="app-btn app-btn-ghost app-btn-full mt16" style="color:var(--pink);border-color:var(--pink)" onclick="cancelPlan()">CANCEL PLAN</button>`:`<button class="app-btn app-btn-lime app-btn-full mt16" onclick="openPayModal('pro')">UPGRADE TO PRO →</button>`}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function clearAndRefresh(){clearAPIKey();renderPage('settings');}
+function clearAllData(){
+  if(!confirm('Clear ALL your data? This cannot be undone.'))return;
+  S.set('logs_'+CU.email,[]);S.set('weights_'+CU.email,[]);S.set('wklogs_'+CU.email,[]);S.set('profile_'+CU.email,null);
+  chatHistory=[];showToast('All data cleared.');renderPage('settings');
+}
+function cancelPlan(){
+  const users=S.get('users',{});if(users[CU.email]){users[CU.email].plan='FREE';S.set('users',users);}
+  CU.plan='FREE';S.set('session',CU);
+  document.getElementById('sb-plan').textContent='✦ FREE';
+  showToast('Plan cancelled. Downgraded to Free.');renderPage('settings');
+}
+
+/* ═══ CLOSE OVERLAYS ON BACKDROP ═══ */
+['pay-overlay','auth-overlay','api-overlay'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{if(e.target.id===id){e.target.classList.remove('open');document.body.style.overflow='';}});
+});
+document.getElementById('auth-pass').addEventListener('keydown',e=>{if(e.key==='Enter')handleAuth();});
+
+/* ═══ INIT ═══ */
+if(CU){
+  document.getElementById('landing-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  document.getElementById('sidebar').classList.add('ready');
+  document.getElementById('sb-avi').textContent=CU.name?.charAt(0)||'U';
+  document.getElementById('sb-uname').textContent=CU.name?.split(' ')[0]||'Athlete';
+  document.getElementById('sb-plan').textContent='✦ '+CU.plan;
+  updateAPIIndicator();
+  navTo('dashboard');
+}
+</script>
+</body>
+</html>
